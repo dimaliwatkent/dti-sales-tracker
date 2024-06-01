@@ -24,7 +24,7 @@ const Navbar = ({ user }) => {
           <p className="font-bold">{user.name}</p>
           <p className="leading-none text-xs">{user.role}</p>
         </div>
-        <div className="h-full bg-white w-0.5 rounded-full"></div>
+        <div className="h-full bg-primary w-0.5 rounded-full"></div>
         <div>
           <LogOut />
         </div>

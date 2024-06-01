@@ -1,6 +1,7 @@
 import Sidebar from "@/components/Sidebar";
 import { Outlet } from "react-router-dom";
 import Navbar from "@/components/Navbar";
+import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 const data = {
   _id: "63701cc1f03239c72c00017f",
@@ -28,6 +29,9 @@ const Layout = () => {
       <div className="container">
         <Navbar user={data || {}} />
         <Outlet />
+      </div>
+      <div className="absolute right-2 bottom-2">
+        <ThemeSwitcher />
       </div>
     </div>
   );

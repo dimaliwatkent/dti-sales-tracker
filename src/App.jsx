@@ -1,5 +1,5 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import Layout from "./scenes/Layout";
 import Dashboard from "./scenes/Dashboard";
 import Records from "./scenes/Records";
