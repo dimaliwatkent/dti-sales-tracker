@@ -2,13 +2,11 @@ import Sidebar from "@/components/Sidebar";
 import { Outlet } from "react-router-dom";
 import Navbar from "@/components/Navbar";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
-import { useGetUserQuery } from "@/services/api";
+// import { useGetUserQuery } from "@/services/api";
 import { useSelector } from "react-redux";
 
 const Layout = () => {
-  const userId = useSelector((state) => state.global.userId);
-  const data = useGetUserQuery(userId);
-  const user = data.data;
+  const user = useSelector((state) => state.user.currentUser);
   return (
     <div className="flex">
       <Sidebar />

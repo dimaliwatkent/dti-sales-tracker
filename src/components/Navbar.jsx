@@ -3,12 +3,24 @@ import PropTypes from "prop-types";
 import { useLocation } from "react-router-dom";
 import { sidebarItems } from "@/constants";
 import { LogOut } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { signOut } from "@/services/userSlice";
 
 const Navbar = ({ user }) => {
+  const dispatch = useDispatch();
   const { pathname } = useLocation();
   const matchingItem = sidebarItems.find((item) =>
     pathname.startsWith(item.path),
   );
+
+  const handleSignOut = async () => {
+    try {
+      await fetch("/api/auth/signout");
+      dispatch(signOut());
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   return (
     <div className={`flex justify-between w-full py-4`}>
@@ -26,7 +38,9 @@ const Navbar = ({ user }) => {
         </div>
         <div className="h-full bg-primary w-0.5 rounded-full"></div>
         <div>
-          <LogOut />
+          <span onClick={handleSignOut}>
+            <LogOut />
+          </span>
         </div>
       </div>
     </div>
@@ -35,8 +49,8 @@ const Navbar = ({ user }) => {
 
 Navbar.propTypes = {
   user: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    role: PropTypes.string.isRequired,
+    name: PropTypes.string,
+    role: PropTypes.string,
   }).isRequired,
 };
 
