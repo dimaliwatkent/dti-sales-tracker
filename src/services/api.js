@@ -6,9 +6,14 @@ export const api = createApi({
   tagTypes: ["Business", "Products", "Sales", "User"],
   endpoints: (build) => ({
     getBusiness: build.query({
-      query: () => "business",
+      query: () => "admin/businesses",
+    }),
+
+    getUser: build.query({
+      query: (id) => `admin/users/${id}`,
+      providesTags: ["User"],
     }),
   }),
 });
 
-export const { useGetBusinessQuery } = api;
+export const { useGetBusinessQuery, useGetUserQuery } = api;
