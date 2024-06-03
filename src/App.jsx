@@ -1,12 +1,17 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import Layout from "./scenes/Layout";
-import Dashboard from "./scenes/Dashboard";
-import Records from "./scenes/Records";
-import Exhibitors from "./scenes/Exhibitors";
-import Registrations from "./scenes/Registrations";
-import SignIn from "./scenes/SignIn";
+import Layout from "./scenes/admin/Layout";
+import Dashboard from "./scenes/admin/dashboard";
+import Records from "./scenes/admin/records";
+import Exhibitors from "./scenes/admin/exhibitors";
+import Registrations from "./scenes/admin/registrations";
+import SignIn from "./scenes/admin/signin";
 import PrivateRoute from "./components/PrivateRoute";
+import UserLayout from "./scenes/user/UserLayout";
+import Sales from "./scenes/user/sales";
+import Products from "./scenes/user/products";
+import UserRecords from "./scenes/user/records";
+import RestrictedRoute from "./components/RestrictedRoute";
 
 function App() {
   return (
@@ -16,15 +21,30 @@ function App() {
           <Routes>
             <Route path="/signin" element={<SignIn />} />
             <Route element={<PrivateRoute />}>
-              <Route element={<Layout />}>
+              <Route element={<UserLayout />}>
                 <Route
                   path="/"
-                  element={<Navigate to="/dashboard" replace />}
+                  element={<Navigate to="/user/sales" replace />}
                 />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/records" element={<Records />} />
-                <Route path="/exhibitors" element={<Exhibitors />} />
-                <Route path="/registrations" element={<Registrations />} />
+                <Route path="/user/sales" element={<Sales />} />
+                <Route path="/user/records" element={<UserRecords />} />
+                <Route path="/user/products" element={<Products />} />
+              </Route>
+            </Route>
+
+            <Route element={<RestrictedRoute />}>
+              <Route element={<Layout />}>
+                <Route
+                  path="/admin"
+                  element={<Navigate to="/admin/dashboard" replace />}
+                />
+                <Route path="/admin/dashboard" element={<Dashboard />} />
+                <Route path="/admin/records" element={<Records />} />
+                <Route path="/admin/exhibitors" element={<Exhibitors />} />
+                <Route
+                  path="/admin/registrations"
+                  element={<Registrations />}
+                />
               </Route>
             </Route>
           </Routes>

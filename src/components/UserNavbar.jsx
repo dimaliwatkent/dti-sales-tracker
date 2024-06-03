@@ -1,15 +1,14 @@
-import React from "react";
 import PropTypes from "prop-types";
 import { useLocation } from "react-router-dom";
-import { sidebarItems } from "@/constants";
+import { userSidebarItems } from "@/constants";
 import { LogOut } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { signOut } from "@/services/userSlice";
 
-const Navbar = ({ user }) => {
+const UserNavbar = ({ user }) => {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
-  const matchingItem = sidebarItems.find((item) =>
+  const matchingItem = userSidebarItems.find((item) =>
     pathname.startsWith(item.path),
   );
 
@@ -47,11 +46,11 @@ const Navbar = ({ user }) => {
   );
 };
 
-Navbar.propTypes = {
+UserNavbar.propTypes = {
   user: PropTypes.shape({
     name: PropTypes.string,
     role: PropTypes.string,
   }).isRequired,
 };
 
-export default Navbar;
+export default UserNavbar;

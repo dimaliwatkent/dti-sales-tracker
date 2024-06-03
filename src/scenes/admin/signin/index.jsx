@@ -46,7 +46,7 @@ const SignIn = () => {
         return;
       }
       dispatch(signInSuccess(data));
-      navigate("/");
+      data.role === "admin" ? navigate("/admin") : navigate("/");
     } catch (error) {
       dispatch(signInFailure(error));
     }
