@@ -16,7 +16,7 @@ const ThemeSwitcher = () => {
   };
 
   return (
-    <div>
+    <div className="fixed bottom-2 left-2 z-50">
       <button onClick={toggleTheme} className="hover:scale-125">
         {theme === "dark" ? <Moon /> : <Sun />}
       </button>

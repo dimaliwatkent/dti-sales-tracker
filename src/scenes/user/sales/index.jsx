@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import AddProduct from "./AddProduct";
 import SalesCalendar from "./SalesCalendar";
 import { Separator } from "@/components/ui/separator";
+import { X } from "lucide-react";
 
 const Sales = () => {
   const user = useSelector((state) => state.user.currentUser);
@@ -23,6 +24,7 @@ const Sales = () => {
 
   if (isLoading || !data?.sale) return <div>Loading...</div>;
   const { sale } = data;
+  console.log(sale);
 
   const deleteProductFromSale = async (productId) => {
     try {
@@ -66,42 +68,58 @@ const Sales = () => {
       </div>
       <Separator />
 
-      <div>
+      <div className="py-4">
         {sale.products.length > 0 ? (
-          sale.products.map(
-            (
-              product, // Changed parameter name to 'product'
-            ) => (
-              <div key={product._id}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>{product.productId.name}</CardTitle>{" "}
-                  </CardHeader>
-                  <CardContent>
-                    <p>Price: ₱ {product.productId.price}.00</p>{" "}
-                    <div>
-                      <p>Quantity: {product.quantity}</p>{" "}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <div>
-                      <Button
-                        onClick={() =>
-                          deleteProductFromSale(product.productId._id)
-                        }
-                      >
-                        Delete
-                      </Button>
-                      <Button>Edit</Button>
-                    </div>
-                  </CardFooter>
-                </Card>
-              </div>
-            ),
-          )
+          sale.products.map((product) => (
+            <div key={product._id}>
+              <Card className="py-2 px-4 mb-4">
+                <div className="flex justify-between">
+                  <CardTitle className="text-xl">
+                    {product.productId.name}
+                  </CardTitle>
+
+                  <div className="flex gap-2 ">
+                    <CardTitle className="text-2xl">
+                      ₱ {product.productId.price * product.quantity}.00
+                    </CardTitle>
+                    <Button
+                      onClick={() =>
+                        deleteProductFromSale(product.productId._id)
+                      }
+                      size="icon"
+                      className="hover:bg-destructive h-7 w-7 rounded-full"
+                    >
+                      <X size={20} />
+                    </Button>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Price: ₱ {product.productId.price}.00
+                </p>
+                <div>
+                  <p className="text-sm text-muted-foreground">
+                    Quantity: {product.quantity}
+                  </p>
+                </div>
+              </Card>
+            </div>
+          ))
         ) : (
-          <div className="flex justify-center p-4">
-            <p>There are currently no products in sale.</p>
+          <div className="flex flex-col items-center p-8 w-full">
+            <p className="text-2xl font-bold">
+              No products are currently on sale
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Once products are added, they will appear here.
+            </p>
+            <div className="mt-4">
+              <AddProduct
+                products={productData}
+                saleId={sale._id}
+                businessId={businessId}
+                refetch={refetch}
+              />
+            </div>
           </div>
         )}
       </div>

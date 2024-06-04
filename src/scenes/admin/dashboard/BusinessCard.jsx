@@ -1,9 +1,9 @@
 import React from "react";
 import { useGetBusinessQuery } from "@/services/api";
 import PropTypes from "prop-types";
+import SalesGraph from "./SalesGraph";
 
 const BusinessCard = ({ selectedBusiness }) => {
-  console.log(selectedBusiness);
   const { data, isLoading, isError } = useGetBusinessQuery(selectedBusiness);
 
   if (isLoading) {
@@ -14,7 +14,7 @@ const BusinessCard = ({ selectedBusiness }) => {
   }
 
   const business = data?.business;
-  console.log(data);
+  const chartData = data?.chartData;
 
   return (
     <div className="business-card flex flex-col gap-2 w-96">
@@ -43,7 +43,9 @@ const BusinessCard = ({ selectedBusiness }) => {
           </p>
         </div>
       </div>
-      <div>graph</div>
+      <div>
+        <SalesGraph chartData={chartData} />
+      </div>
     </div>
   );
 };

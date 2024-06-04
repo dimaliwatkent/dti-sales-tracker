@@ -79,7 +79,7 @@ const SignIn = () => {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="flex justify-between">
+        <CardFooter>
           <Button disabled={loading} className="w-full" onClick={handleSubmit}>
             {loading ? "Loading..." : "Sign In"}
           </Button>

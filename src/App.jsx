@@ -12,6 +12,7 @@ import Sales from "./scenes/user/sales";
 import Products from "./scenes/user/products";
 import UserRecords from "./scenes/user/records";
 import RestrictedRoute from "./components/RestrictedRoute";
+import ThemeSwitcher from "./components/ThemeSwitcher";
 
 function App() {
   return (
@@ -48,6 +49,8 @@ function App() {
               </Route>
             </Route>
           </Routes>
+
+          <ThemeSwitcher />
         </ThemeProvider>
       </BrowserRouter>
     </>
