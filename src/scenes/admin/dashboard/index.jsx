@@ -21,7 +21,6 @@ const Dashboard = () => {
   }, [data]);
 
   const handleRowSelect = (business) => {
-    console.log(business);
     setSelectedBusiness(business);
   };
 
