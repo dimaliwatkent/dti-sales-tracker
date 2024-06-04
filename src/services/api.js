@@ -5,18 +5,25 @@ export const api = createApi({
   reducerPath: "api",
   tagTypes: ["Business", "Products", "Sales", "User"],
   endpoints: (build) => ({
-    getBusiness: build.query({
+    getBusinesses: build.query({
       query: () => "admin/businesses",
     }),
+    getBusiness: build.query({
+      query: (businessId) => `admin/businesses/${businessId}`,
+    }),
+
     getSales: build.query({
       query: (businessId) => `user/sales/${businessId}`,
     }),
-
     getProducts: build.query({
       query: (businessId) => `user/products/${businessId}`,
     }),
   }),
 });
 
-export const { useGetBusinessQuery, useGetSalesQuery, useGetProductsQuery } =
-  api;
+export const {
+  useGetBusinessesQuery,
+  useGetBusinessQuery,
+  useGetSalesQuery,
+  useGetProductsQuery,
+} = api;

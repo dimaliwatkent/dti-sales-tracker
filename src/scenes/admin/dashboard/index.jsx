@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useGetBusinessQuery } from "@/services/api.js";
+import { useGetBusinessesQuery } from "@/services/api.js";
 import {
   Table,
   TableBody,
@@ -9,9 +9,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import BusinessCard from "./BusinessCard";
 
 const Dashboard = () => {
-  const { data, isLoading } = useGetBusinessQuery();
+  const { data, isLoading } = useGetBusinessesQuery();
   const [selectedBusiness, setSelectedBusiness] = useState(null);
 
   useEffect(() => {
@@ -86,51 +87,7 @@ const Dashboard = () => {
             </TableBody>
           </Table>
         </div>
-
-        <div className="business-card flex flex-col gap-2 w-96">
-          {data.find((business) => business._id === selectedBusiness) && (
-            <>
-              <div className="flex border rounded-lg p-4 gap-4">
-                <div className="w-24 h-24 bg-secondary rounded-lg"></div>
-                <div>
-                  <p className="font-bold text-lg">
-                    {
-                      data.find((business) => business._id === selectedBusiness)
-                        .name
-                    }
-                  </p>
-                  <p className="text-muted-foreground">
-                    {
-                      data.find((business) => business._id === selectedBusiness)
-                        .owner
-                    }
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Booth No. :{" "}
-                    {
-                      data.find((business) => business._id === selectedBusiness)
-                        .boothNumber
-                    }
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex gap-4 ">
-                <div className="flex-grow border rounded-lg p-2">
-                  <p className="text-muted-foreground text-xs">Total Sales</p>
-                  <p className="font-bold text-lg">₱ 10000.00</p>
-                </div>
-                <div className="flex-grow border rounded-lg p-2">
-                  <p className="text-muted-foreground text-xs">
-                    Average Daily Sales
-                  </p>
-                  <p className="font-bold text-lg">₱ 10000.00</p>
-                </div>
-              </div>
-              <div>graph</div>
-            </>
-          )}
-        </div>
+        <BusinessCard selectedBusiness={selectedBusiness} />
       </div>
     </div>
   );

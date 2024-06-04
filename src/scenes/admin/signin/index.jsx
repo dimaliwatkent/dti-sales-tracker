@@ -54,40 +54,35 @@ const SignIn = () => {
 
   return (
     <div className="h-screen flex justify-center items-center">
-      <Card className="w-[350px]">
+      <Card>
         <CardHeader>
-          <CardTitle>Sign In</CardTitle>
+          <CardTitle className="text-3xl">Sign In</CardTitle>
+          <CardDescription>
+            Enter your email below to sign in to your account.
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <div className="grid w-full items-center gap-4">
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Enter your Email"
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="flex flex-col space-y-1.5">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  placeholder="Enter your password"
-                  onChange={handleChange}
-                />
-              </div>
-
-              <Button disabled={loading}>
-                {loading ? "Loading..." : "Sign In"}
-              </Button>
+          <div className="grid w-full items-center gap-4">
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="abc@gmail.com"
+                onChange={handleChange}
+              />
             </div>
-          </form>
+
+            <div className="flex flex-col space-y-1.5">
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" onChange={handleChange} />
+            </div>
+          </div>
         </CardContent>
         <CardFooter className="flex justify-between">
+          <Button disabled={loading} className="w-full" onClick={handleSubmit}>
+            {loading ? "Loading..." : "Sign In"}
+          </Button>
           <p className="text-red-700 mt-5">
             {error ? error.message || "Something went wrong!" : ""}
           </p>
