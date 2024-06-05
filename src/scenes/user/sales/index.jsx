@@ -1,15 +1,6 @@
-import { useEffect, useState } from "react";
 import { useGetSalesQuery } from "@/services/api.js";
-import { useGetProductsQuery } from "@/services/api.js";
 import { useSelector } from "react-redux";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import AddProduct from "./AddProduct";
 import SalesCalendar from "./SalesCalendar";
@@ -20,15 +11,14 @@ const Sales = () => {
   const user = useSelector((state) => state.user.currentUser);
   const businessId = user.business;
   const { data, isLoading, refetch } = useGetSalesQuery(businessId);
-  const { data: productData } = useGetProductsQuery(businessId);
 
   if (isLoading || !data?.sale) return <div>Loading...</div>;
   const { sale } = data;
-  console.log(sale);
 
   const deleteProductFromSale = async (productId) => {
     try {
-      const url = "http://localhost:3000/user/sales/removeproduct";
+      const url =
+        "https://dti-sales-tracker.netlify.app/.netlify/functions/api/user/sales/removeproduct";
 
       const response = await fetch(url, {
         method: "DELETE",
@@ -58,7 +48,6 @@ const Sales = () => {
           <SalesCalendar />
           <div>
             <AddProduct
-              products={productData}
               saleId={sale._id}
               businessId={businessId}
               refetch={refetch}
@@ -114,7 +103,6 @@ const Sales = () => {
             </p>
             <div className="mt-4">
               <AddProduct
-                products={productData}
                 saleId={sale._id}
                 businessId={businessId}
                 refetch={refetch}

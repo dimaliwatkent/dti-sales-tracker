@@ -4,7 +4,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -36,7 +35,7 @@ const NewProduct = ({ businessId, setValue }) => {
 
     try {
       const response = await fetch(
-        `http://localhost:3000/user/products/${businessId}`,
+        `https://dti-sales-tracker.netlify.app/.netlify/functions/api/user/products/${businessId}`,
         {
           method: "POST",
           headers: {
@@ -59,7 +58,6 @@ const NewProduct = ({ businessId, setValue }) => {
       setProductName("");
       setProductPrice(0);
       const data = await response.json();
-      console.log(data);
     } catch (error) {
       console.error(
         "There has been a problem with your fetch operation:",

@@ -14,7 +14,9 @@ const UserNavbar = ({ user }) => {
 
   const handleSignOut = async () => {
     try {
-      await fetch("http://localhost:3000/auth/signout");
+      await fetch(
+        "https://dti-sales-tracker.netlify.app/.netlify/functions/api/auth/signout",
+      );
       dispatch(signOut());
     } catch (error) {
       console.log(error);

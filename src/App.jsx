@@ -18,7 +18,7 @@ function App() {
   return (
     <>
       <BrowserRouter>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
           <Routes>
             <Route path="/signin" element={<SignIn />} />
             <Route element={<PrivateRoute />}>

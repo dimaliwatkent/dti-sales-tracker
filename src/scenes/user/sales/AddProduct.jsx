@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -17,7 +16,6 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,14 +25,14 @@ import NewProduct from "./NewProduct";
 import { useGetSalesQuery, useGetProductsQuery } from "@/services/api";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const AddProduct = ({ products, saleId, businessId }) => {
+const AddProduct = ({ saleId, businessId }) => {
   const [activeTab, setActiveTab] = useState("my-products");
   const [selectedProduct, setSelectedProduct] = useState("");
   const [selectedProductName, setSelectedProductName] = useState("");
   const [quantity, setQuantity] = useState(1);
   const [isOpen, setIsOpen] = useState(false);
 
-  const { refetch: refetchProduct } = useGetProductsQuery(businessId);
+  const { data, refetch: refetchProduct } = useGetProductsQuery(businessId);
   const { refetch } = useGetSalesQuery(businessId);
 
   const addProductToSale = async () => {
@@ -48,7 +46,7 @@ const AddProduct = ({ products, saleId, businessId }) => {
     }
     try {
       const response = await fetch(
-        "http://localhost:3000/user/sales/addproduct",
+        "https://dti-sales-tracker.netlify.app/.netlify/functions/api/user/sales/addproduct",
         {
           method: "POST",
           headers: {
@@ -69,7 +67,6 @@ const AddProduct = ({ products, saleId, businessId }) => {
       setQuantity(1);
       setSelectedProduct("");
       setSelectedProductName("");
-      const data = await response.json();
     } catch (error) {
       console.error(error);
       alert("Failed to add product.", error);
@@ -79,7 +76,7 @@ const AddProduct = ({ products, saleId, businessId }) => {
   const handleDelete = async (productId) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/user/products/removeproduct/${businessId}/${productId}`,
+        `https://dti-sales-tracker.netlify.app/.netlify/functions/api/user/products/removeproduct/${businessId}/${productId}`,
         {
           method: "DELETE",
         },
@@ -106,7 +103,7 @@ const AddProduct = ({ products, saleId, businessId }) => {
   };
   const handleRadioSelection = (value) => {
     setSelectedProduct(value);
-    const productName = products.find((product) => product._id === value)?.name;
+    const productName = data.find((product) => product._id === value)?.name;
     setSelectedProductName(productName || "");
   };
   const handleQuantityChange = (event) => {
@@ -158,32 +155,36 @@ const AddProduct = ({ products, saleId, businessId }) => {
                     onValueChange={handleRadioSelection}
                     defaultValue=""
                   >
-                    {products.map((product) => (
-                      <div
-                        key={product._id}
-                        className="flex items-center justify-between"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem
-                            value={product._id}
-                            id={`r-${product._id}`}
-                          />
-                          <Label htmlFor={`r-${product._id}`}>
-                            {product.name}
-                          </Label>
+                    {data ? (
+                      data.map((product) => (
+                        <div
+                          key={product._id}
+                          className="flex items-center justify-between"
+                        >
+                          <div className="flex items-center space-x-2">
+                            <RadioGroupItem
+                              value={product._id}
+                              id={`r-${product._id}`}
+                            />
+                            <Label htmlFor={`r-${product._id}`}>
+                              {product.name}
+                            </Label>
+                          </div>
+                          <div className="flex gap-2 items-center">
+                            <p className="text-sm">₱ {product.price}.00</p>
+                            <Button
+                              variant="outline"
+                              className="hover:text-destructive"
+                              onClick={() => handleDelete(product._id)}
+                            >
+                              <Trash2 size={16} />
+                            </Button>
+                          </div>
                         </div>
-                        <div className="flex gap-2 items-center">
-                          <p className="text-sm">₱ {product.price}.00</p>
-                          <Button
-                            variant="outline"
-                            className="hover:text-destructive"
-                            onClick={() => handleDelete(product._id)}
-                          >
-                            <Trash2 size={16} />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <div>No products</div>
+                    )}
                   </RadioGroup>
                 </ScrollArea>
               </CardContent>
@@ -206,18 +207,18 @@ const AddProduct = ({ products, saleId, businessId }) => {
 };
 
 AddProduct.propTypes = {
-  products: PropTypes.arrayOf(
-    PropTypes.shape({
-      _id: PropTypes.string.isRequired,
-      name: PropTypes.string.isRequired,
-      price: PropTypes.number.isRequired,
-      under_nego: PropTypes.bool.isRequired,
-      business: PropTypes.string.isRequired,
-      createdAt: PropTypes.string.isRequired,
-      updatedAt: PropTypes.string.isRequired,
-      __v: PropTypes.number.isRequired,
-    }),
-  ),
+  // products: PropTypes.arrayOf(
+  //   PropTypes.shape({
+  //     _id: PropTypes.string.isRequired,
+  //     name: PropTypes.string.isRequired,
+  //     price: PropTypes.number.isRequired,
+  //     under_nego: PropTypes.bool.isRequired,
+  //     business: PropTypes.string.isRequired,
+  //     createdAt: PropTypes.string.isRequired,
+  //     updatedAt: PropTypes.string.isRequired,
+  //     __v: PropTypes.number.isRequired,
+  //   }),
+  // ),
   saleId: PropTypes.string.isRequired,
   businessId: PropTypes.string.isRequired,
 };
