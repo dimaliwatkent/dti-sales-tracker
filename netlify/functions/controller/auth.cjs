@@ -1,49 +1,219 @@
 const User = require("../models/user.cjs");
-const bcryptjs = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const { errorHandler } = require("../utils/error.cjs");
-const dotenv = require("dotenv");
+const mongoose = require("mongoose");
+const {
+  generateAccessToken,
+  generateRefreshToken,
+} = require("../middleware/auth.cjs");
 
-dotenv.config();
-const signup = async (req, res, next) => {
-  const { username, email, password, role, name } = req.body;
-  const hashedPassword = bcryptjs.hashSync(password, 10);
-  const newUser = new User({
-    username,
-    email,
-    password: hashedPassword,
-    role,
-    name,
-  });
+// handle error
+const handleError = (res, err) => {
+  return res
+    .status(500)
+    .json({ message: "Internal server error", err: err.message });
+};
+
+// get user info
+function getUserInfo(user) {
+  return {
+    _id: user._id,
+    businessList: user.businessList,
+    name: user.name,
+    email: user.email,
+    phoneNumber: user.phoneNumber,
+    role: user.role,
+    isArchived: user.isArchived,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
+    refreshToken: user.refreshToken,
+  };
+}
+
+// Sign Up
+const signUp = async (req, res, next) => {
   try {
+    const { name, email, password, phoneNumber } = req.body;
+
+    if (!name || !email || !password) {
+      return res.status(400).json({ message: "All fields are required" });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(422).json({ message: "Email already exists" });
+    }
+
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*.])(?=.{8,})/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        message:
+          "Password must be at least 8 characters long, contain at least one number, and one special character.",
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = new User({
+      name,
+      email,
+      password: hashedPassword,
+      phoneNumber,
+      business: null,
+    });
+
     await newUser.save();
-    res.status(201).json({ message: "User created successfully" });
-  } catch (error) {
-    next(error);
+
+    const accessToken = await generateAccessToken({ id: newUser._id });
+    const refreshToken = await generateRefreshToken({
+      id: newUser._id,
+      email: newUser.email,
+    });
+
+    newUser.refreshToken = refreshToken;
+    await newUser.save();
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(201).json({
+      message: "Sign up successful",
+      user: getUserInfo(newUser),
+      accessToken,
+    });
+  } catch (err) {
+    handleError(res, err);
   }
 };
 
-const signin = async (req, res, next) => {
-  const { email, password } = req.body;
+// Sign In
+const signIn = async (req, res) => {
   try {
-    const validUser = await User.findOne({ email });
-    if (!validUser) return next(errorHandler(404, "User not found"));
-    const validPassword = bcryptjs.compareSync(password, validUser.password);
-    if (!validPassword) return next(errorHandler(401, "wrong credentials"));
-    const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
-    const { password: hashedPassword, ...rest } = validUser._doc;
-    const expiryDate = new Date(Date.now() + 3600000); // 1 hour
-    res
-      .cookie("access_token", token, { httpOnly: true, expires: expiryDate })
-      .status(200)
-      .json(rest);
-  } catch (error) {
-    next(error);
+    const { email, password } = req.body;
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(422).json({ message: "Invalid email or password" });
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      password,
+      existingUser.password,
+    );
+    if (!isPasswordValid) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    const accessToken = await generateAccessToken({ id: existingUser._id });
+    const refreshToken = await generateRefreshToken({
+      id: existingUser._id,
+      email: existingUser.email,
+    });
+
+    existingUser.refreshToken = refreshToken;
+    await existingUser.save();
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res.status(200).json({
+      message: "Sign in successful",
+      user: getUserInfo(existingUser),
+      accessToken,
+    });
+  } catch (err) {
+    handleError(res, err);
   }
 };
 
-const signout = (req, res) => {
-  res.clearCookie("access_token").status(200).json("Signout success!");
+// Login with Refresh Token
+const loginWithRefreshToken = async (req, res) => {
+  try {
+    // const refreshToken = req.cookies.refreshToken // Uncomment this line to use cookies
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token required" });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
+
+    const user = await User.findById(decoded.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: "Invalid refresh token" });
+    }
+
+    const accessToken = await generateAccessToken({ user: user._id });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    return res
+      .status(200)
+      .json({ message: "Logged in successful", accessToken });
+  } catch (err) {
+    handleError(res, err);
+  }
 };
 
-module.exports = { signin, signout, signup };
+// Sign Out
+const signOut = async (req, res) => {
+  try {
+    const { id } = req.body;
+
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });
+
+    const user = await User.findById(id);
+    if (user) {
+      user.refreshToken = null;
+      await user.save();
+    } else {
+      return res.status(403).json({ message: "Forbidden" });
+    }
+
+    return res.status(200).json({ message: "Signed out successfully" });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
+module.exports = {
+  signUp,
+  signIn,
+  loginWithRefreshToken,
+  signOut,
+};

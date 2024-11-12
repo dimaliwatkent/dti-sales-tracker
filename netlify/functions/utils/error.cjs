@@ -4,4 +4,10 @@ const errorHandler = (statusCode, message) => {
   error.message = message;
   return error;
 };
-module.exports = errorHandler;
+
+const globalErrorHandler = (error, req, res, next) => {
+  console.error(error);
+  res.status(error.statusCode || 500).json({ message: error.message });
+};
+
+module.exports = { errorHandler, globalErrorHandler };

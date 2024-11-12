@@ -1,0 +1,101 @@
+const exportToPDF = () => {
+    const doc = new jsPDF("landscape");
+    const formattedDate = new Date().toLocaleDateString();
+
+    const businesses = saleList.reduce((acc, sale) => {
+      const businessName = sale.business.name;
+      if (!acc[businessName]) acc[businessName] = [];
+      acc[businessName].push(sale);
+      return acc;
+    }, {} as { [key: string]: Sale[] });
+
+    const eventStartDate = new Date(saleList[0].event.startDate);
+    const eventEndDate = new Date(saleList[0].event.endDate);
+    const eventTitle = `Tatak Pinoy: OBRA MIMAROPA 2024\n${eventStartDate.toLocaleString(
+      "default",
+      { month: "long" }
+    )} ${eventStartDate.getDate()} - ${eventEndDate.toLocaleString("default", {
+      month: "long",
+    })} ${eventEndDate.getDate()}, ${eventEndDate.getFullYear()} | Glorietta Activity Center, Makati City\nFair Proper Sales Monitoring`;
+    const region = "Region: MIMAROPA";
+    const province = "Province: Marinduque";
+    const dynamicDate = `Date: ${formattedDate}`;
+
+    doc.setFontSize(16);
+    doc.text(eventTitle, doc.internal.pageSize.getWidth() / 2, 10, {
+      align: "center",
+    });
+    doc.setFontSize(12);
+    doc.text(
+      `${region} | ${province} | ${dynamicDate}`,
+      doc.internal.pageSize.getWidth() / 2,
+      30 + 3,
+      { align: "center" }
+    );
+
+    autoTable(doc, {
+      head: [
+        [
+          {
+            content: "Products",
+            styles: { halign: "center", fillColor: [128, 128, 128] },
+          },
+          {
+            content: "Quantity",
+            styles: { halign: "center", fillColor: [128, 128, 128] },
+          },
+          {
+            content: "Total Sales",
+            styles: { halign: "center", fillColor: [128, 128, 128] },
+          },
+        ],
+      ],
+      body: [
+        ...Object.entries(businesses).flatMap(([businessName, sales]) =>
+          sales.flatMap((sale) =>
+            sale.product.map((product) => {
+              const productName = product.name;
+              const quantity = product.quantity;
+              const totalSales = parseFloat(
+                product.totalPrice["$numberDecimal"]
+              ).toFixed(2);
+
+              return [productName, quantity, totalSales];
+            })
+          )
+        ),
+        [
+          {
+            content: "Overall Total Sales",
+            colSpan: 2,
+            styles: { halign: "right", fillColor: [211, 211, 211] },
+          },
+          {
+            content: saleList
+              .reduce(
+                (acc, sale) =>
+                  acc +
+                  sale.product.reduce(
+                    (productAcc, product) =>
+                      productAcc +
+                      parseFloat(product.totalPrice["$numberDecimal"]),
+                    0
+                  ),
+                0
+              )
+              .toFixed(2),
+            styles: { halign: "right", fillColor: [211, 211, 211] },
+          },
+        ],
+      ],
+      columnStyles: {
+        0: { cellWidth: 80 },
+        1: { halign: "center" },
+        2: { halign: "right" },
+      },
+      margin: { top: 50 },
+      styles: { fontSize: 10, cellPadding: 3 },
+    });
+
+    doc.save(`sales-report-${formattedDate}.pdf`);
+  };
