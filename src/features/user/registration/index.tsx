@@ -8,7 +8,7 @@ import { intervalTime } from "@/constants";
 const Registration = () => {
   const user = useUserData();
   const { data, refetch } = useGetUserQuery(user._id);
-  const newUserRole = data.user.role;
+  const newUserRole = data?.user?.role;
   const navigate = useNavigate();
   const { toast } = useToast();
 
