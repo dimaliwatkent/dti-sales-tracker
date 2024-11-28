@@ -1,4 +1,4 @@
-// export components from admin
+// export components from user
 
 export { default as Sales } from "./sales";
 export { default as Records } from "./records";

@@ -89,7 +89,7 @@ const ViewEvent = (): JSX.Element => {
             <TabsTrigger value="rejected">Rejected</TabsTrigger>
           </TabsList>
 
-          <Refresh refetch={refetchEvent} />
+          <Refresh refetch={refetchEvent} className="ml-2" />
 
           <TabsContent value="applicants">
             {!applicantList || applicantList.length === 0 ? (

@@ -6,6 +6,7 @@ export interface Record {
   exhibitorCount: number;
   rejectedCount: number;
   applicantCount: number;
+  overallAmount: number;
   businessList: RecordBusiness[];
 }
 

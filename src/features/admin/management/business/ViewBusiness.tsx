@@ -12,6 +12,7 @@ import {
   Link2,
   ShoppingCart,
 } from "lucide-react";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface ProfileSectionProps {
   title?: string;
@@ -48,7 +49,23 @@ const ViewBusiness = () => {
   const business = useActiveBusinessData();
 
   const profileDetails = [
+    { title: "Business Name", value: business.name },
+    { title: "Address", value: business.address },
+    { title: "Region", value: business.region },
+    { title: "Zip Code", value: business.zip },
+
     { title: "Founded", value: formatDateTime(business.dateOfEstablishment) },
+    { title: "Contact Person's Name", value: business.contactPersonName },
+    {
+      title: "Contact Person's Phone Number",
+      value: `0${business.contactPersonNumber}`,
+    },
+    {
+      title: "Contact Person's Designation",
+      value: business.contactPersonDesignation,
+    },
+    { title: "Contact Person's Sex", value: business.contactPersonSex },
+
     { title: "Payment Method", value: business.paymentOption },
     {
       title: "Logistic Service Provider",
@@ -63,8 +80,8 @@ const ViewBusiness = () => {
     { title: "Brand Name", value: business.brandName },
     { title: "Prorietorship", value: business.type },
     { title: "Asset Size", value: business.assetSize },
-    { title: "Target Sales", value: business.targetSale },
-    { title: "Annual Income", value: business.annualIncome },
+    { title: "Target Sales", value: formatCurrency(business.targetSale) },
+    { title: "Annual Income", value: formatCurrency(business.annualIncome) },
     {
       title: "Full-time Employees",
       value: business.fulltimeEmployee,

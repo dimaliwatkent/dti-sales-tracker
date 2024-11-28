@@ -1,8 +1,6 @@
 import { useBusinessListData } from "@/hooks/dataHooks";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 import {
@@ -20,8 +18,6 @@ const Business = () => {
   const businessList = useBusinessListData();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
-
-  const navigate = useNavigate();
 
   const filteredBusinessList = businessList.filter(
     (business) =>
@@ -57,12 +53,6 @@ const Business = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button
-          disabled
-          onClick={() => navigate("/admin/management/add-business")}
-        >
-          Add Business
-        </Button>
       </div>
       <ScrollArea className="w-full h-[calc(100vh-230px)] md:h-[calc(100vh-150px)]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

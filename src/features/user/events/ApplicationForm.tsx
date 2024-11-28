@@ -55,19 +55,25 @@ const ApplicationForm = () => {
       userId: user?._id,
       name: "",
       address: "",
+      region: "",
+      zip: "",
       logo: "",
       facebookPage: "",
       ecommerceSite: "",
       website: "",
+      contactPersonName: "",
+      contactPersonNumber: "",
+      contactPersonDesignation: "",
+      contactPersonSex: "",
       paymentOption: [],
-      logisticServiceProvider: "",
+      logisticServiceProvider: [],
       industryClassification: [],
-      productLineService: "",
+      productLineService: [],
       product: "",
       brandName: "",
       category: [],
       type: "",
-      assetSize: 0,
+      assetSize: "",
       targetSale: 0,
       fulltimeEmployee: 0,
       parttimeEmployee: 0,
@@ -154,6 +160,48 @@ const ApplicationForm = () => {
                   <FormControl>
                     <Input placeholder="Tanza, Boac, Marinduque" {...field} />
                   </FormControl>
+                  <FormDescription>
+                    Barangay, Municipality, Province
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="region"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Region</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a region" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="4A-MIMAROPA">4A-MIMAROPA</SelectItem>
+                      <SelectItem value="4B-CALABARZON">
+                        4B-CALABARZON
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="zip"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Zip Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="4900" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -201,6 +249,72 @@ const ApplicationForm = () => {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="contactPersonName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Person's Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Juan Dela Cruz" {...field} />
+                  </FormControl>
+                  <FormDescription>FirstName LastName</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="contactPersonNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Person's Phone Number</FormLabel>
+                  <FormControl>
+                    <Input placeholder="9876543212" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="contactPersonDesignation"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Person's Designation</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Sales Manager" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="contactPersonSex"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Contact Person's Sex</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a sex" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="male">Male</SelectItem>
+                      <SelectItem value="female">Female</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="paymentOption"
@@ -227,7 +341,7 @@ const ApplicationForm = () => {
                   </div>
                   <MultiSelect
                     title="Select Payment Option"
-                    options={["cash", "gcash", "maya"]}
+                    options={["Cash", "Gcash", "Maya", "Bank Transfer"]}
                     selectedItem={field.value}
                     setSelectedItem={field.onChange}
                   />
@@ -241,9 +355,38 @@ const ApplicationForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Logistic Service Provider</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
+
+                  <div className="flex flex-wrap gap-2">
+                    {field.value.length > 0
+                      ? field.value.map((item, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
+                            onClick={() => {
+                              field.onChange(
+                                field.value.filter((i) => i !== item),
+                              );
+                            }}
+                          >
+                            {item} <X size={10} />
+                          </div>
+                        ))
+                      : ""}
+                  </div>
+                  <MultiSelect
+                    title="Select a Logistic Service Provider"
+                    options={[
+                      "LBC",
+                      "JRS Express",
+                      "Mr. Speedy",
+                      "Lalamove",
+                      "Grab",
+                      "Air21",
+                      "Food Panda",
+                    ]}
+                    selectedItem={field.value}
+                    setSelectedItem={field.onChange}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -276,10 +419,10 @@ const ApplicationForm = () => {
                   <MultiSelect
                     title="Select Industry Classification"
                     options={[
-                      "manufacturing",
-                      "service",
-                      "retail",
-                      "wholesale",
+                      "Agriculture, Forestry and Fishing",
+                      "Manufacturing",
+                      "Wholesale and Retail Trade",
+                      "Service",
                     ]}
                     selectedItem={field.value}
                     setSelectedItem={field.onChange}
@@ -295,9 +438,38 @@ const ApplicationForm = () => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Product Line or Service</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
+
+                  <div className="flex flex-wrap gap-2">
+                    {field.value.length > 0
+                      ? field.value.map((item, index) => (
+                          <div
+                            key={index}
+                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
+                            onClick={() => {
+                              field.onChange(
+                                field.value.filter((i) => i !== item),
+                              );
+                            }}
+                          >
+                            {item} <X size={10} />
+                          </div>
+                        ))
+                      : ""}
+                  </div>
+                  <MultiSelect
+                    title="Select product line or service"
+                    options={[
+                      "Clothing and Apparel",
+                      "Food Processing",
+                      "Furniture Production",
+                      "Handicrafts and Souvenirs",
+                      "Agricultural Products",
+                      "Health and Beauty Products",
+                      "Printing Services",
+                    ]}
+                    selectedItem={field.value}
+                    setSelectedItem={field.onChange}
+                  />
                   <FormMessage />
                 </FormItem>
               )}
@@ -376,37 +548,59 @@ const ApplicationForm = () => {
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Business Type</FormLabel>
+                  <FormLabel>Business Profile</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select a type of business" />
+                        <SelectValue placeholder="Select a type of business profile" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="sole proprietorship">
+                      <SelectItem value="Sole Proprietorship">
                         Sole Proprietorship
                       </SelectItem>
-                      <SelectItem value="partnership">Partnership</SelectItem>
-                      <SelectItem value="corporation">Corporation</SelectItem>
+                      <SelectItem value="Partnership">Partnership</SelectItem>
+                      <SelectItem value="Corporation">Corporation</SelectItem>
+                      <SelectItem value="NGO/Cooperative">
+                        NGO/Cooperative
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name="assetSize"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Asset Size</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" type="number" {...field} />
-                  </FormControl>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select asset size" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Less than or Equal to 3,000,000">
+                        Less than or Equal to 3,000,000
+                      </SelectItem>
+                      <SelectItem value="3,000,001 - 15,000,000">
+                        3,000,001 - 15,000,000
+                      </SelectItem>
+                      <SelectItem value="15,000,001 - 100,000,000">
+                        15,000,001 - 100,000,000
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

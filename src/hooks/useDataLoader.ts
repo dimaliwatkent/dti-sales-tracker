@@ -3,12 +3,14 @@ import { useDispatch } from "react-redux";
 import { useGetBusinessListQuery } from "@/api/business/businessApiSlice";
 import {
   useGetEventListQuery,
+  useGetMonitorEventListQuery,
   useGetUserEventListQuery,
 } from "@/api/event/eventApiSlice";
 import { useGetUserListQuery, useGetUserQuery } from "@/api/user/userApiSlice";
 import { setBusinessList } from "@/api/business/businessSlice";
 import {
   setEventList,
+  setMonitorEventList,
   setOpenEventList,
   setUserEventList,
 } from "@/api/event/eventSlice";
@@ -43,6 +45,17 @@ const useDataLoader = () => {
   } = useGetUserEventListQuery(user?._id, {
     skip: role !== "user",
   });
+
+  const {
+    data: monitorEventList,
+    isLoading: isMonitorEventListLoading,
+    refetch: refetchMonitorEventList,
+  } = useGetMonitorEventListQuery(
+    {},
+    {
+      skip: role !== "monitor",
+    },
+  );
 
   const {
     data: businessList,
@@ -95,7 +108,8 @@ const useDataLoader = () => {
     isBusinessListLoading ||
     isEventListLoading ||
     isUserListLoading ||
-    isRecordListLoading;
+    isRecordListLoading ||
+    isMonitorEventListLoading;
 
   const refetchAll = async () => {
     await Promise.all([
@@ -143,6 +157,12 @@ const useDataLoader = () => {
     }
   }, [recordList, role, dispatch]);
 
+  useEffect(() => {
+    if (monitorEventList && role === "monitor") {
+      dispatch(setMonitorEventList(monitorEventList.eventList));
+    }
+  }, [monitorEventList, role, dispatch]);
+
   return {
     isLoading,
     refetchAll,
@@ -158,6 +178,8 @@ const useDataLoader = () => {
     refetchUserList,
     recordList,
     refetchRecordList,
+    monitorEventList,
+    refetchMonitorEventList,
   };
 };
 

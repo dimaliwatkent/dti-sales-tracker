@@ -126,6 +126,30 @@ const getUserEventList = async (req, res) => {
   }
 };
 
+const getMonitorEventList = async (req, res) => {
+  try {
+    const eventList = await Event.find({ status: "ongoing" })
+      .populate({
+        path: "businessList",
+        populate: {
+          path: "violationList",
+          model: "businessViolation",
+        },
+      })
+      .exec();
+    if (!eventList) {
+      return res.status(404).json({ message: "No ongoing events found" });
+    }
+
+    return res.status(200).json({
+      message: "Ongoing events retrieved successfully",
+      eventList,
+    });
+  } catch (err) {
+    handleError(res, err);
+  }
+};
+
 // get event by id
 const getEvent = async (req, res) => {
   try {
@@ -322,6 +346,7 @@ const archiveEvent = async (req, res) => {
 module.exports = {
   getEventList,
   getUserEventList,
+  getMonitorEventList,
   getEvent,
   addEvent,
   editEvent,

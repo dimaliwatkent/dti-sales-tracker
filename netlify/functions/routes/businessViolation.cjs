@@ -6,8 +6,10 @@ const {
   getBusinessViolation,
   createBusinessViolation,
   payBusinessViolation,
+  addBusinessViolation,
 } = require("../controller/businessViolation.cjs");
 
+router.post("/add-violation/:businessId", addBusinessViolation);
 router.get("/:id", getBusinessViolationList);
 router.get("/:businessViolation", getBusinessViolation);
 router.put("/:id", payBusinessViolation);

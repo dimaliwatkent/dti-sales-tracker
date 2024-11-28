@@ -24,6 +24,7 @@ const violationRouter = require("./routes/violation.cjs");
 const businessViolationRouter = require("./routes/businessViolation.cjs");
 const businessAwardRouter = require("./routes/businessAward.cjs");
 const customProductRouter = require("./routes/customProduct.cjs");
+const notificationRouter = require("./routes/notification.cjs");
 
 dotenv.config();
 
@@ -49,6 +50,7 @@ app.use("/.netlify/functions/api/violation", violationRouter);
 app.use("/.netlify/functions/api/business-violation", businessViolationRouter);
 app.use("/.netlify/functions/api/business-award", businessAwardRouter);
 app.use("/.netlify/functions/api/custom-product", customProductRouter);
+app.use("/.netlify/functions/api/notification", notificationRouter);
 
 app.use(globalErrorHandler);
 

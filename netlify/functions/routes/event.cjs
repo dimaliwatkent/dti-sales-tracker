@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   getEventList,
   getUserEventList,
+  getMonitorEventList,
   getEvent,
   addEvent,
   editEvent,
@@ -12,6 +13,7 @@ const {
 
 router.get("/", getEventList);
 router.get("/user/:userId", getUserEventList);
+router.get("/monitor", getMonitorEventList);
 router.get("/:id", getEvent);
 router.post("/", addEvent);
 router.put("/:id", editEvent);

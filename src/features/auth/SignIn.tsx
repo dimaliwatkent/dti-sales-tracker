@@ -65,7 +65,7 @@ const SignIn = () => {
       if (result.user.role === "admin") {
         navigate("/admin/dashboard");
       } else if (result.user.role === "monitor") {
-        navigate("/monitor");
+        navigate("/monitor/events");
       } else if (
         result.user.role === "exhibitor" ||
         result.user.role === "user"

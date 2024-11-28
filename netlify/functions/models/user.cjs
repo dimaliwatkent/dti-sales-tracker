@@ -57,6 +57,7 @@ const UserSchema = new mongoose.Schema(
             "pendingUser",
             "user",
             "monitor",
+            "rejected",
           ].includes(v);
         },
         message: "Role must be admin, newUser, pendingUser, user, or monitor",

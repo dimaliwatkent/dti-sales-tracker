@@ -10,6 +10,75 @@ const handleError = (res, err) => {
     .json({ message: "An error occurred", err: err.message });
 };
 
+// API endpoint to add a violation to a business
+const addBusinessViolation = async (req, res) => {
+  try {
+    // Get the business ID from the URL parameter
+    const businessId = req.params.businessId;
+
+    // Get the violation from the request body
+    const violation = req.body;
+
+    // Check if the business exists
+    const business = await Business.findById(businessId);
+    if (!business) {
+      return res.status(404).json({ message: "Business not found" });
+    }
+
+    // Check if the violation already exists in the business
+    const existingViolation = await BusinessViolation.findOne({
+      business: businessId,
+      "violation.name": violation.name,
+    });
+
+    if (!existingViolation) {
+      // Create a new business violation document
+      const newViolation = new BusinessViolation({
+        business: businessId,
+        violation: {
+          name: violation.name,
+          fee: violation.fee,
+          description: violation.description,
+        },
+        monitor: violation.monitor, // Assuming the monitor is the current user
+        count: 1,
+      });
+
+      // Save the new business violation document
+      await newViolation.save();
+
+      // Add the new business violation to the business's violation list
+      business.violationList.push(newViolation._id);
+      await business.save();
+
+      const newBusiness =
+        await Business.findById(businessId).populate("violationList");
+
+      // Return a success response
+      res.json({
+        message: "Violation added successfully",
+        business: newBusiness,
+      });
+    } else {
+      // Increment the count of the existing business violation document
+      existingViolation.count++;
+      await existingViolation.save();
+
+      const newBusiness =
+        await Business.findById(businessId).populate("violationList");
+
+      // Return a success response
+      res.json({
+        message: "Violation count incremented successfully",
+        business: newBusiness,
+      });
+    }
+  } catch (error) {
+    // Return an error response
+    res.status(500).json({ message: "Error adding violation" });
+  }
+};
+
 // get all businesses
 const getBusinessViolationList = async (req, res) => {
   try {
@@ -136,6 +205,7 @@ const payBusinessViolation = async (req, res) => {
 };
 
 module.exports = {
+  addBusinessViolation,
   getBusinessViolationList,
   getBusinessViolation,
   createBusinessViolation,

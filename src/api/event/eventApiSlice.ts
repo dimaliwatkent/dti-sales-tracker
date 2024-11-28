@@ -14,6 +14,10 @@ export const eventApiSlice = apiSlice.injectEndpoints({
       query: (userId) => `/event/user/${userId}`,
     }),
 
+    getMonitorEventList: builder.query({
+      query: () => `/event/monitor`,
+    }),
+
     getEvent: builder.query({
       query: (id) => `/event/${id}`,
     }),
@@ -48,6 +52,7 @@ export const {
   useGetEventListQuery,
   useGetArchivedEventsQuery,
   useGetUserEventListQuery,
+  useGetMonitorEventListQuery,
   useGetEventQuery,
   useAddEventMutation,
   useEditEventMutation,

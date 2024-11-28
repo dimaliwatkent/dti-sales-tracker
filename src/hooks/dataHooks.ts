@@ -10,11 +10,12 @@ import {
 
 import { Business } from "@/types/BusinessType";
 import { User } from "@/types/UserType";
-import { Event, EventBusiness } from "@/types/EventType";
+import { Event, EventBusiness, EventBusinessMonitor } from "@/types/EventType";
 
 import {
   selectEvent,
   selectEventList,
+  selectMonitorEventList,
   selectOpenEventList,
   selectUserEventList,
 } from "@/api/event/eventSlice";
@@ -72,6 +73,11 @@ const useRecordListData = () => {
   return record;
 };
 
+const useMonitorEventListData = () => {
+  const event: EventBusinessMonitor[] = useSelector(selectMonitorEventList);
+  return event;
+};
+
 export {
   useBusinessListData,
   useBusinessData,
@@ -83,4 +89,5 @@ export {
   useOpenEventListData,
   useUserEventListData,
   useRecordListData,
+  useMonitorEventListData,
 };

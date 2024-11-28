@@ -20,7 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { useUserListData } from "@/hooks/dataHooks";
 import { useChangeRoleMutation } from "@/api/user/userApiSlice";
-import { roleMap, intervalTime } from "@/constants";
+import { intervalTime } from "@/constants";
 import useDataLoader from "@/hooks/useDataLoader";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -73,15 +73,13 @@ const AdminRegistrations = () => {
           onValueChange={(value) => setSelectedRole(value)}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select role" />
+            <SelectValue placeholder="Filters" />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               <SelectItem value="all">All</SelectItem>
               <SelectItem value="newUser">Pending</SelectItem>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="monitor">Monitor</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -93,8 +91,7 @@ const AdminRegistrations = () => {
             <TableHead>User Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Phone Number</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Change Role</TableHead>
+            <TableHead>Accept/Reject</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -109,7 +106,6 @@ const AdminRegistrations = () => {
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>0{user.phoneNumber}</TableCell>
-                <TableCell>{roleMap[user.role]}</TableCell>
                 <TableCell>
                   <div>
                     <Select
@@ -133,11 +129,14 @@ const AdminRegistrations = () => {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          <SelectLabel>Roles</SelectLabel>
+                          <SelectLabel>Accept or Reject</SelectLabel>
                           <SelectItem value="newUser">Pending</SelectItem>
-                          <SelectItem value="user">User</SelectItem>
-                          <SelectItem value="monitor">Monitor</SelectItem>
-                          <SelectItem value="admin">Admin</SelectItem>
+                          <SelectItem value="user">Accept as User</SelectItem>
+                          <SelectItem value="monitor">
+                            Accept as Monitor
+                          </SelectItem>
+                          <SelectItem value="admin">Accept as Admin</SelectItem>
+                          <SelectItem value="rejected">Reject</SelectItem>
                         </SelectGroup>
                       </SelectContent>
                     </Select>

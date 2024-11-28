@@ -34,7 +34,7 @@ const AdminManagement = () => {
           <TabsTrigger value="businesses">Businesses</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
         </TabsList>
-        <Refresh refetch={refetchAll} />
+        <Refresh refetch={refetchAll} className="ml-2" />
         <TabsContent value="events">
           <Events />
         </TabsContent>

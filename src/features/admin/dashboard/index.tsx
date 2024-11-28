@@ -15,6 +15,7 @@ import {
 import { useState, useEffect } from "react";
 
 import { formatDateTime } from "@/utils/formatTime";
+import { formatCurrency } from "@/utils/formatCurrency";
 import { useUserListData } from "@/hooks/dataHooks";
 import BusinessTable from "./BusinessTable";
 import SpinnerText from "@/components/SpinnerWithText";
@@ -36,6 +37,9 @@ const AdminDashboard = () => {
   const exhibitorCount = activeEvent?.exhibitorCount ?? 0;
   const applicantCount = activeEvent?.applicantCount ?? 0;
   const rejectedCount = activeEvent?.rejectedCount;
+
+  // total sales
+  const totalSales = activeEvent?.overallAmount;
 
   const businessData = [
     {
@@ -165,7 +169,9 @@ const AdminDashboard = () => {
                             Total Event Sales
                           </p>
                           <div className="text-sm text-primary/70 font-bold ">
-                            <p className="text-3xl font bold"></p>
+                            <p className="text-3xl font bold">
+                              {formatCurrency(totalSales || 0)}
+                            </p>
                           </div>
                         </div>
                       </div>

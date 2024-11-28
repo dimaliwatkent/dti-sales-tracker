@@ -1,20 +1,35 @@
 import { useEffect, useState } from "react";
-import { adminSidebarItems, sidebarItems } from "@/constants";
+import {
+  adminSidebarItems,
+  sidebarItems,
+  monitorSidebarItems,
+} from "@/constants";
 import { Link, useLocation } from "react-router-dom";
 import logo from "/dti-logo.png";
 import { useUserData } from "@/hooks/dataHooks";
 
 import { ModeToggle } from "./mode-toggle";
+import { SidebarItem } from "@/types/OtherTypes";
 
 const Navbar = (): JSX.Element => {
   const { pathname } = useLocation();
   const [activeItem, setActiveItem] = useState("");
+  const [navbarItems, setNavbarItems] = useState<SidebarItem[]>([]);
   const status = useUserData()?.role;
 
   useEffect(() => {
-    const sidebarItemsToUse =
-      status === "admin" ? adminSidebarItems : sidebarItems;
-    const matchingItem = sidebarItemsToUse.find((item) =>
+    switch (status) {
+      case "admin":
+        setNavbarItems(adminSidebarItems);
+        break;
+      case "monitor":
+        setNavbarItems(monitorSidebarItems);
+        break;
+      default:
+        setNavbarItems(sidebarItems);
+    }
+
+    const matchingItem = navbarItems.find((item) =>
       pathname.startsWith(item.path),
     );
     setActiveItem(matchingItem ? matchingItem.text.toLowerCase() : "");
@@ -34,33 +49,35 @@ const Navbar = (): JSX.Element => {
         </div>
         <div className="h-10" />
         <div>
-          {(status === "admin" ? adminSidebarItems : sidebarItems).map(
-            (item) => {
-              const lowercaseText = item.text.toLowerCase();
+          {navbarItems.map((item) => {
+            const lowercaseText = item.text.toLowerCase();
 
-              const isHidden: boolean =
-                ((status === "admin" || status === "user") &&
-                  item.path === "/registration") ||
-                ((status === "pendingUser" || status === "newUser") &&
-                  item.path !== "/registration");
+            const isHidden: boolean =
+              ((status === "admin" ||
+                status === "user" ||
+                status === "monitor") &&
+                item.path === "/registration") ||
+              ((status === "pendingUser" ||
+                status === "newUser" ||
+                status === "rejected") &&
+                item.path !== "/registration");
 
-              return (
-                <Link
-                  to={item.path}
-                  key={item.text}
-                  className={`${
-                    activeItem === lowercaseText && "bg-secondary  rounded-full"
-                  } items-center flex gap-2 my-4 py-1 px-4 ${isHidden ? "hidden" : ""} `}
-                  onClick={() => {
-                    setActiveItem(lowercaseText);
-                  }}
-                >
-                  <item.icon />
-                  <span>{item.text}</span>
-                </Link>
-              );
-            },
-          )}
+            return (
+              <Link
+                to={item.path}
+                key={item.text}
+                className={`${
+                  activeItem === lowercaseText && "bg-secondary  rounded-full"
+                } items-center flex gap-2 my-4 py-1 px-4 ${isHidden ? "hidden" : ""} `}
+                onClick={() => {
+                  setActiveItem(lowercaseText);
+                }}
+              >
+                <item.icon />
+                <span>{item.text}</span>
+              </Link>
+            );
+          })}
         </div>
 
         <div className="z-50 fixed left-2 bottom-2 hidden md:block">
@@ -70,33 +87,33 @@ const Navbar = (): JSX.Element => {
 
       <div className="mobile block md:hidden border rounded-xl bg-background">
         <div className="flex justify-evenly">
-          {(status === "admin" ? adminSidebarItems : sidebarItems).map(
-            (item) => {
-              const lowercaseText = item.text.toLowerCase();
+          {navbarItems.map((item) => {
+            const lowercaseText = item.text.toLowerCase();
 
-              const isHidden: boolean =
-                ((status === "admin" || status === "user") &&
-                  item.path === "/registration") ||
-                ((status === "pendingUser" || status === "newUser") &&
-                  item.path !== "/registration");
+            const isHidden: boolean =
+              ((status === "admin" ||
+                status === "user" ||
+                status === "monitor") &&
+                item.path === "/registration") ||
+              ((status === "pendingUser" || status === "newUser") &&
+                item.path !== "/registration");
 
-              return (
-                <Link
-                  to={item.path}
-                  key={item.text}
-                  className={`items-center flex flex-col my-2 py-1 px-4 ${
-                    activeItem === lowercaseText && " bg-secondary rounded-lg"
-                  } ${isHidden ? "hidden" : ""} `}
-                  onClick={() => {
-                    setActiveItem(lowercaseText);
-                  }}
-                >
-                  <item.icon width={24} height={24} className="m-2" />
-                  <p className="text-xs">{item.text}</p>
-                </Link>
-              );
-            },
-          )}
+            return (
+              <Link
+                to={item.path}
+                key={item.text}
+                className={`items-center flex flex-col my-2 py-1 px-4 ${
+                  activeItem === lowercaseText && " bg-secondary rounded-lg"
+                } ${isHidden ? "hidden" : ""} `}
+                onClick={() => {
+                  setActiveItem(lowercaseText);
+                }}
+              >
+                <item.icon width={24} height={24} className="m-2" />
+                <p className="text-xs">{item.text}</p>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

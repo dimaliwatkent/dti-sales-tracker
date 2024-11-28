@@ -32,6 +32,14 @@ export const businessApiSlice = apiSlice.injectEndpoints({
         body: { applicationStatus: status, statusMessage: message },
       }),
     }),
+
+    addViolation: builder.mutation({
+      query: ({ businessId, violation }) => ({
+        url: `/business-violation/add-violation/${businessId}`,
+        method: "POST",
+        body: { ...violation },
+      }),
+    }),
   }),
 });
 
@@ -41,4 +49,5 @@ export const {
   useAddBusinessMutation,
   useEditBusinessMutation,
   useUpdateStatusMutation,
+  useAddViolationMutation,
 } = businessApiSlice;

@@ -31,6 +31,13 @@ import {
   Profile,
 } from "./features/user";
 
+import {
+  MonitorEvents,
+  MonitorViewEvent,
+  MonitorViewBusiness,
+  MonitorInfo,
+} from "./features/monitor";
+
 import DataLoader from "./components/DataLoader";
 
 function App() {
@@ -105,6 +112,27 @@ function App() {
             </Route>
           </Route>
 
+          {/**
+           * Monitor routes.
+           */}
+          <Route element={<RestrictedRoute allowedRoles={["monitor"]} />}>
+            <Route element={<Layout />}>
+              <Route path="/monitor/events" element={<MonitorEvents />} />
+              <Route
+                path="/monitor/events/view-event"
+                element={<MonitorViewEvent />}
+              />
+              <Route
+                path="/monitor/events/view-business"
+                element={<MonitorViewBusiness />}
+              />
+              <Route path="/monitor/info" element={<MonitorInfo />} />
+            </Route>
+          </Route>
+
+          {/**
+           * Other user routes.
+           */}
           <Route
             element={
               <RestrictedRoute allowedRoles={["newUser", "pendingUser"]} />

@@ -1,5 +1,9 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { adminSidebarItems, sidebarItems } from "@/constants";
+import {
+  adminSidebarItems,
+  sidebarItems,
+  monitorSidebarItems,
+} from "@/constants";
 import SignOut from "@/features/auth/SignOut";
 import { roleMap } from "@/constants";
 
@@ -16,11 +20,16 @@ import { selectCurrentUser } from "@/api/auth/authSlice";
 
 const Topbar = (): JSX.Element => {
   const user: User = useSelector(selectCurrentUser);
+  const role = user?.role;
   const { pathname }: Path = useLocation();
   const navigate = useNavigate();
 
   const sidebarItemsToUse: SidebarItem[] =
-    user?.role === "admin" ? adminSidebarItems : sidebarItems;
+    role === "admin"
+      ? adminSidebarItems
+      : role === "monitor"
+        ? monitorSidebarItems
+        : sidebarItems;
 
   const matchingItem: SidebarItem | undefined = sidebarItemsToUse.find((item) =>
     pathname.startsWith(item.path),

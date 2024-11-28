@@ -36,9 +36,25 @@ const BusinessSchema = new mongoose.Schema(
     },
     address: {
       type: String,
+      required: true,
       trim: true,
       minlength: [10, "Business address must be at least 10 characters"],
       maxlength: [200, "Business address cannot exceed 200 characters"],
+    },
+    region: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: [10, "Region must be at least 10 characters"],
+      maxlength: [200, "Region cannot exceed 200 characters"],
+    },
+    zip: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: [4, "Zip code must be exactly 4 characters"],
+      maxlength: [4, "Zip code must be exactly 4 characters"],
+      match: [/^\d{4}$/, "Invalid zip code format"],
     },
     logo: { type: String },
     facebookPage: {
@@ -72,6 +88,32 @@ const BusinessSchema = new mongoose.Schema(
       },
       message: "Invalid website URL",
     },
+    contactPersonName: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: [3, "Name must be at least 3 characters"],
+      maxlength: [50, "Name cannot exceed 50 characters"],
+    },
+    contactPersonNumber: {
+      type: Number,
+      validate: {
+        validator: function (v) {
+          return /^\d{10}$/.test(v);
+        },
+        message: "Phone number must be a 10-digit number",
+      },
+    },
+    contactPersonDesignation: {
+      type: String,
+      required: true,
+      trim: true,
+      minlength: [3, "Designation must be at least 3 characters"],
+      maxlength: [50, "Designation cannot exceed 50 characters"],
+    },
+    contactPersonSex: {
+      type: String,
+    },
     paymentOption: {
       type: [String],
       // trim: true,
@@ -82,9 +124,7 @@ const BusinessSchema = new mongoose.Schema(
       // },
     },
     logisticServiceProvider: {
-      type: String,
-      trim: true,
-      maxlength: [50, "Logistic service provider cannot exceed 50 characters"],
+      type: [String],
     },
     industryClassification: {
       type: [String],
@@ -104,9 +144,7 @@ const BusinessSchema = new mongoose.Schema(
       // },
     },
     productLineService: {
-      type: String,
-      trim: true,
-      maxlength: [100, "Product line/service cannot exceed 100 characters"],
+      type: [String],
     },
     product: {
       type: String,
@@ -137,22 +175,22 @@ const BusinessSchema = new mongoose.Schema(
     type: {
       type: String,
       trim: true,
-      validate: {
-        validator: function (v) {
-          return ["sole proprietorship", "partnership", "corporation"].includes(
-            v,
-          );
-        },
-        message:
-          "Sole must be sole proprietorship, partnership, or corporation",
-      },
+      // validate: {
+      //   validator: function (v) {
+      //     return [
+      //       "sole proprietorship",
+      //       "partnership",
+      //       "corporation",
+      //     ].includes(v);
+      //   },
+      //   message:
+      //     "Sole must be sole proprietorship, partnership, or corporation",
+      // },
     },
 
     // Business Statistics
     assetSize: {
-      type: Number,
-      min: [0, "Asset size cannot be negative"],
-      max: [1000000000, "Asset size cannot exceed 1 billion"],
+      type: String,
     },
     targetSale: {
       type: Number,

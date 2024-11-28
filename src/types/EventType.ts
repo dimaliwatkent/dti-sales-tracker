@@ -1,4 +1,4 @@
-import { Business } from "./BusinessType";
+import { Business, BusinessWithViolation } from "./BusinessType";
 /**
  * Interface for event data
  */
@@ -33,6 +33,19 @@ export interface EventBusiness {
   endDate: string;
   applicationStart: string;
   applicationEnd: string;
+  status: string;
+  booth: string[];
+  isArchived: boolean;
+}
+
+export interface EventBusinessMonitor {
+  _id: string;
+  businessList: BusinessWithViolation[];
+  title: string;
+  logo: string;
+  location: string;
+  startDate: string;
+  endDate: string;
   status: string;
   booth: string[];
   isArchived: boolean;
