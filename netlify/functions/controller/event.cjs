@@ -33,7 +33,9 @@ const getEventList = async (req, res) => {
       .exec();
     events = await Promise.all(
       events.map(async (event) => {
-        const now = new Date();
+        const now = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }),
+        );
         const applicationStart = new Date(event.applicationStart);
         const applicationEnd = new Date(event.applicationEnd);
         const startDate = new Date(event.startDate);
