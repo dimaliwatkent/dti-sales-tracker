@@ -75,6 +75,12 @@ const ReviewForm = ({
             <DialogTitle>Review Your Form</DialogTitle>
           </DialogHeader>
           <ScrollArea className="w-full h-[calc(100vh-200px)]  overflow-y-auto p-4 ">
+            <div className="pb-4">
+              <p className="text-sm text-secondary-foreground ">
+                Verify that the information is accurate and up-to-date, as it
+                cannot be changed once you submit.
+              </p>
+            </div>
             <div className="space-y-2">
               {fields.map((field, index) => (
                 <div key={index}>
@@ -98,12 +104,21 @@ const ReviewForm = ({
                   ) : null}
                 </div>
               ))}
-              <div>
-                <p className="text-sm text-destructive">
-                  Please review your application form carefully as you will not
-                  be able to make changes once submitted
-                </p>
-              </div>
+
+              {formData["logoFile"] ? (
+                <div className="mt-4">
+                  <div className="">
+                    <p className="">Business Logo:</p>
+                    <img
+                      src={formData["logoFile"]}
+                      alt="logo-preview"
+                      className="max-w-full h-auto max-h-64"
+                    />
+                  </div>
+                </div>
+              ) : (
+                ""
+              )}
             </div>
           </ScrollArea>
           <DialogFooter>

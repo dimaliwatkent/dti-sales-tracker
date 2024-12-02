@@ -3,11 +3,35 @@ const User = require("../models/user.cjs");
 const Event = require("../models/event.cjs");
 const mongoose = require("mongoose");
 
+// aws s3
+const dotenv = require("dotenv");
+
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
+
+dotenv.config();
+
+const bucketName = process.env.S3_BUCKET_NAME;
+const bucketRegion = process.env.S3_BUCKET_REGION;
+const accessKey = process.env.S3_BUCKET_ACCESS_KEY;
+const secretKey = process.env.S3_BUCKET_SECRET_KEY;
+
+const s3 = new S3Client({
+  credentials: {
+    accessKeyId: accessKey,
+    secretAccessKey: secretKey,
+  },
+  region: bucketRegion,
+});
+
 // handle error
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // get business by id
@@ -16,20 +40,18 @@ const getBusiness = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business ID" });
+      return res.status(400).cjson({ message: "Invalid business ID" });
     }
 
     const business = await Business.findById(id);
 
-    console.log(id);
-
     if (!business) {
-      return res.status(404).json({ message: "No business found" });
+      return res.status(404).cjson({ message: "No business found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Business retrieved successfully", business });
+      .cjson({ message: "Business retrieved successfully", business });
   } catch (err) {
     handleError(res, err);
   }
@@ -44,12 +66,12 @@ const getBusinessList = async (req, res) => {
       .exec();
 
     if (!business || !business.length) {
-      return res.status(404).json({ message: "No business found" });
+      return res.status(404).cjson({ message: "No business found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Business list retrieved successfully", business });
+      .cjson({ message: "Business list retrieved successfully", business });
   } catch (err) {
     handleError(res, err);
   }
@@ -58,29 +80,41 @@ const getBusinessList = async (req, res) => {
 // create business
 const addBusiness = async (req, res) => {
   try {
-    const { eventId, userId, ...businessData } = req.body;
+    const {
+      eventId,
+      userId,
+      logoFile,
+      waiverFile,
+      signedTermsFile,
+      paymentQRFile,
+      businessNameRegFile,
+      validIdFile,
+      menuCopyFile,
+      productPhotosFile,
+      ...businessData
+    } = req.body;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).cjson({ message: "Invalid user ID" });
     }
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).cjson({ message: "User not found" });
     }
     if (user.role !== "user") {
       return res
         .status(404)
-        .json({ message: "Must be a user to add business" });
+        .cjson({ message: "Must be a user to add business" });
     }
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).cjson({ message: "Event not found" });
     }
 
     const newBusiness = new Business({
@@ -88,6 +122,53 @@ const addBusiness = async (req, res) => {
       user: user._id,
       event: eventId,
     });
+
+    // UPLOAD LOGO
+
+    const files = [
+      { file: logoFile, type: "logo" },
+      { file: waiverFile, type: "waiver" },
+      { file: signedTermsFile, type: "signed-terms" },
+      { file: paymentQRFile, type: "payment-qr" },
+      { file: businessNameRegFile, type: "business-name-reg" },
+      { file: validIdFile, type: "valid-id" },
+      { file: menuCopyFile, type: "menu-copy" },
+      { file: productPhotosFile, type: "product-photos" },
+    ];
+
+    const uploadedFiles = await Promise.all(
+      files.map(async (file) => {
+        const binaryFile = Buffer.from(file.file.split(",")[1], "base64");
+        const fileType = file.file.split(";")[0].split(":")[1];
+        const fileExtension = fileType.split("/")[1];
+        const fileName = `documents/${event.title}/${newBusiness.name}/${file.type}/${newBusiness.name}-${newBusiness._id}.${fileExtension}`;
+        const params = {
+          Bucket: bucketName,
+          Key: fileName,
+          Body: binaryFile,
+          ContentType: fileType,
+        };
+        const command = new PutObjectCommand(params);
+        await s3.send(command);
+        const imageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+        return { type: file.type, url: imageUrl };
+      }),
+    );
+
+    // Set the logo URL
+    newBusiness.logo = uploadedFiles.find((file) => file.type === "logo").url;
+
+    // Create the document list
+    const documents = uploadedFiles
+      .filter((file) => file.type !== "logo")
+      .map((file) => {
+        return {
+          documentType: file.type,
+          url: file.url,
+        };
+      });
+
+    newBusiness.documentList = documents;
 
     await newBusiness.save();
 
@@ -100,7 +181,7 @@ const addBusiness = async (req, res) => {
       await event.save();
     }
 
-    return res.status(201).json({
+    return res.status(201).cjson({
       message: "Business created successfully",
       business: newBusiness,
     });
@@ -115,12 +196,12 @@ const editBusiness = async (req, res) => {
     const businessData = req.body;
 
     if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business ID" });
+      return res.status(400).cjson({ message: "Invalid business ID" });
     }
 
     const business = await Business.findById(id);
     if (!business) {
-      return res.status(404).json({ message: "Business not found" });
+      return res.status(404).cjson({ message: "Business not found" });
     }
 
     const updatedBusiness = { ...business.toObject(), ...businessData };
@@ -131,10 +212,10 @@ const editBusiness = async (req, res) => {
       { new: true },
     );
     if (result.nModified === 0) {
-      return res.status(500).json({ message: "Failed to update business" });
+      return res.status(500).cjson({ message: "Failed to update business" });
     }
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Business updated successfully",
       business: updatedBusiness,
     });
@@ -150,22 +231,22 @@ const editBusiness = async (req, res) => {
 //     const { isAdmin, userId } = req.body;
 //
 //     if (!id || !mongoose.isValidObjectId(id)) {
-//       return res.status(400).json({ message: "Invalid business ID" });
+//       return res.status(400).cjson({ message: "Invalid business ID" });
 //     }
 //
 //     if (!userId || !mongoose.isValidObjectId(userId)) {
-//       return res.status(400).json({ message: "Invalid user ID" });
+//       return res.status(400).cjson({ message: "Invalid user ID" });
 //     }
 //
 //     const business = await Business.findById(id);
 //     if (!business) {
-//       return res.status(404).json({ message: "Business not found" });
+//       return res.status(404).cjson({ message: "Business not found" });
 //     }
 //
 //     if (business.applicationStatus === "approved" && !isAdmin) {
 //       return res
 //         .status(403)
-//         .json({ message: "Only admins can edit approved businesses" });
+//         .cjson({ message: "Only admins can edit approved businesses" });
 //     }
 //
 //     const updatedBusinessData = {
@@ -179,7 +260,7 @@ const editBusiness = async (req, res) => {
 //
 //     res
 //       .status(200)
-//       .json({ message: "Business updated successfully", business });
+//       .cjson({ message: "Business updated successfully", business });
 //   } catch (err) {
 //     handleError(res, err);
 //   }
@@ -192,19 +273,19 @@ const applicationStatus = async (req, res) => {
     const { applicationStatus, statusMessage } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business ID" });
+      return res.status(400).cjson({ message: "Invalid business ID" });
     }
 
     const existingBusiness = await Business.findById(id);
 
     if (!existingBusiness) {
-      return res.status(404).json({ message: "No business found" });
+      return res.status(404).cjson({ message: "No business found" });
     }
 
     const eventId = existingBusiness.event;
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const event = await Event.findById(eventId);
@@ -240,7 +321,7 @@ const applicationStatus = async (req, res) => {
       })
       .exec();
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Business application status updated successfully",
       business: existingBusiness,
       event: newEvent,
@@ -257,13 +338,13 @@ const archiveBusiness = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business ID" });
+      return res.status(400).cjson({ message: "Invalid business ID" });
     }
 
     const existingBusiness = await Business.findById(id);
 
     if (!existingBusiness) {
-      return res.status(404).json({ message: "No business found" });
+      return res.status(404).cjson({ message: "No business found" });
     }
 
     existingBusiness.isArchived = isArchived;
@@ -271,7 +352,7 @@ const archiveBusiness = async (req, res) => {
 
     const action = isArchived ? "archived" : "unarchived";
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: `Business ${action} successfully`,
       business: existingBusiness,
     });

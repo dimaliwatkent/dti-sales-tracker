@@ -149,7 +149,7 @@ const BusinessSchema = new mongoose.Schema(
     product: {
       type: String,
       trim: true,
-      maxlength: [200, "Products cannot exceed 200 characters"],
+      maxlength: [1000, "Products cannot exceed 1000 characters"],
     },
     brandName: {
       type: String,
@@ -168,8 +168,8 @@ const BusinessSchema = new mongoose.Schema(
     },
     documentList: [
       {
-        type: String,
-        // required: true
+        documentType: String,
+        url: String,
       },
     ],
     type: {
@@ -234,9 +234,7 @@ const BusinessSchema = new mongoose.Schema(
       },
     },
     boothNumber: {
-      type: Number,
-      default: 0,
-      min: [0, "Booth number cannot be negative"],
+      type: String,
     },
     applicationStatus: {
       type: String,

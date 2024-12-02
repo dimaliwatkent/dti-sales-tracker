@@ -25,15 +25,20 @@ const businessViolationRouter = require("./routes/businessViolation.cjs");
 const businessAwardRouter = require("./routes/businessAward.cjs");
 const customProductRouter = require("./routes/customProduct.cjs");
 const notificationRouter = require("./routes/notification.cjs");
+const uploadRouter = require("./routes/upload.cjs");
+const boothRouther = require("./routes/booth.cjs");
 
 dotenv.config();
+
+app.use(bodyParser.json({ limit: "5mb" }));
+app.use(bodyParser.urlencoded({ limit: "5mb", extended: true }));
 
 app.use(express.json());
 app.use(helmet());
 app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin" }));
 app.use(morgan("common"));
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+// app.use(bodyParser.json());
+// app.use(bodyParser.urlencoded({ extended: false }));
 
 app.use(credentials);
 app.use(cors(corsOptions));
@@ -51,6 +56,8 @@ app.use("/.netlify/functions/api/business-violation", businessViolationRouter);
 app.use("/.netlify/functions/api/business-award", businessAwardRouter);
 app.use("/.netlify/functions/api/custom-product", customProductRouter);
 app.use("/.netlify/functions/api/notification", notificationRouter);
+app.use("/.netlify/functions/api/upload", uploadRouter);
+app.use("/.netlify/functions/api/booth", boothRouther);
 
 app.use(globalErrorHandler);
 

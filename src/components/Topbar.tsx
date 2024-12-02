@@ -9,17 +9,15 @@ import { roleMap } from "@/constants";
 
 import { ChevronLeft } from "lucide-react";
 
-import { User } from "@/types/UserType";
 import { Path } from "react-router-dom";
 import { SidebarItem } from "@/types/OtherTypes";
-import ProfileSidebar from "@/features/user/profile/ProfileSidebar";
+import ProfileSidebar from "@/features/profile/ProfileSidebar";
 import { Separator } from "./ui/separator";
 
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "@/api/auth/authSlice";
+import { useUserData } from "@/hooks/dataHooks";
 
 const Topbar = (): JSX.Element => {
-  const user: User = useSelector(selectCurrentUser);
+  const user = useUserData();
   const role = user?.role;
   const { pathname }: Path = useLocation();
   const navigate = useNavigate();
@@ -35,6 +33,14 @@ const Topbar = (): JSX.Element => {
     pathname.startsWith(item.path),
   );
 
+  const handleProfileClick = () => {
+    role === "admin"
+      ? navigate("/admin/profile")
+      : role === "monitor"
+        ? navigate("/monitor/profile")
+        : navigate("/profile");
+  };
+
   return (
     <div className="flex justify-between w-full py-4">
       <div className="flex gap-2 items-center">
@@ -46,10 +52,20 @@ const Topbar = (): JSX.Element => {
         </h1>
       </div>
 
-      <div className="hidden md:block">
-        <div className="flex items-center">
-          <div className="bg-gray-800 w-8 h-8 rounded-sm mr-2"></div>
-          <div className="border-0 mr-6">
+      <div className="hidden md:block" onClick={handleProfileClick}>
+        <div className="flex items-center space-x-4">
+          {user?.picture ? (
+            <div className="aspect-square h-8 rounded-full overflow-hidden">
+              <img
+                src={user?.picture}
+                alt="profile-picture"
+                className="object-cover h-full w-full"
+              />
+            </div>
+          ) : (
+            <div className="bg-gray-800 w-8 h-8 rounded-full"></div>
+          )}
+          <div>
             <p className="font-bold">{user?.name}</p>
             <p className="leading-none text-xs">
               {roleMap[user?.role ?? ""] || "Unknown Role"}
@@ -57,7 +73,7 @@ const Topbar = (): JSX.Element => {
           </div>
           <Separator
             orientation="vertical"
-            className="py-4 w-[2px] bg-primary mr-2"
+            className="py-4 w-[2px] bg-primary "
           />
           <div>{user?._id && <SignOut id={user._id} />}</div>
         </div>

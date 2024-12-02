@@ -32,7 +32,11 @@ export interface Business {
   product: string;
   brandName: string;
   category: string[];
-  documentList: string[];
+  documentList: {
+    documentType: string;
+    url: string;
+    _id: string;
+  }[];
   type: string;
 
   // Business Statistics
@@ -45,7 +49,7 @@ export interface Business {
 
   // Status
   isOccupying: boolean;
-  boothNumber: number;
+  boothNumber: string;
   applicationStatus: string;
   statusMessage: String;
   isArchived: boolean;
@@ -75,7 +79,11 @@ export interface BusinessWithViolation {
   product: string;
   brandName: string;
   category: string[];
-  documentList: string[];
+  documentList: {
+    documentType: string;
+    url: string;
+    _id: string;
+  }[];
   type: string;
 
   // Business Statistics
@@ -88,7 +96,7 @@ export interface BusinessWithViolation {
 
   // Status
   isOccupying: boolean;
-  boothNumber: number;
+  boothNumber: string;
   applicationStatus: string;
   statusMessage: String;
   isArchived: boolean;

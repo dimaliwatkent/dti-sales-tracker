@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // get all business awards
@@ -16,15 +16,15 @@ const getBusinessAwardList = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid businessAward ID" });
+      return res.status(400).cjson({ message: "Invalid businessAward ID" });
     }
 
     const businessAward = await BusinessAwards.find({ business: id });
 
     if (!businessAward.length) {
-      return res.status(404).json({ message: "No business awards found" });
+      return res.status(404).cjson({ message: "No business awards found" });
     }
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Business awards retrieved successfully",
       businessAward,
     });
@@ -39,17 +39,17 @@ const getBusinessAward = async (req, res) => {
     const { businessId } = req.params;
 
     if (!businessId || !mongoose.isValidObjectId(businessId)) {
-      return res.status(400).json({ message: "Invalid businessAward ID" });
+      return res.status(400).cjson({ message: "Invalid businessAward ID" });
     }
 
     const businessAward = await BusinessAwards.findById(businessId);
 
     if (!businessAward) {
-      return res.status(404).json({ message: "No business award found" });
+      return res.status(404).cjson({ message: "No business award found" });
     }
     return res
       .status(200)
-      .json({
+      .cjson({
         message: "Business award retrieved successfully",
         businessAward,
       });
@@ -66,22 +66,22 @@ const createBusinessAward = async (req, res) => {
     const { awardId } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business ID" });
+      return res.status(400).cjson({ message: "Invalid business ID" });
     }
 
     if (!awardId || !mongoose.isValidObjectId(awardId)) {
-      return res.status(400).json({ message: "Invalid award ID" });
+      return res.status(400).cjson({ message: "Invalid award ID" });
     }
 
     const existingAward = await Award.findById(awardId);
     const existingBusiness = await Business.findById(id);
 
     if (!existingAward) {
-      return res.status(404).json({ message: "Award not found" });
+      return res.status(404).cjson({ message: "Award not found" });
     }
 
     if (!existingBusiness) {
-      return res.status(404).json({ message: "Business not found" });
+      return res.status(404).cjson({ message: "Business not found" });
     }
 
     const newBusinessAward = new BusinessAwards({
@@ -95,7 +95,7 @@ const createBusinessAward = async (req, res) => {
 
     await existingBusiness.save();
 
-    return res.status(201).json({
+    return res.status(201).cjson({
       message: "Business award created successfully",
       businessAward: newBusinessAward,
     });
@@ -111,15 +111,15 @@ const updateBusinessAward = async (req, res) => {
     const { awardId, businessId } = req.body;
 
     if (!businessAwardId || !mongoose.isValidObjectId(businessAwardId)) {
-      return res.status(400).json({ message: "Invalid business award ID" });
+      return res.status(400).cjson({ message: "Invalid business award ID" });
     }
 
     if (!awardId || !mongoose.isValidObjectId(awardId)) {
-      return res.status(400).json({ message: "Invalid award ID" });
+      return res.status(400).cjson({ message: "Invalid award ID" });
     }
 
     if (!businessId || !mongoose.isValidObjectId(businessId)) {
-      return res.status(400).json({ message: "Invalid business ID" });
+      return res.status(400).cjson({ message: "Invalid business ID" });
     }
 
     const existingBusinessAward =
@@ -128,20 +128,20 @@ const updateBusinessAward = async (req, res) => {
     const existingBusiness = await Business.findById(businessId);
 
     if (!existingBusinessAward) {
-      return res.status(404).json({ message: "Business award not found" });
+      return res.status(404).cjson({ message: "Business award not found" });
     }
     if (!existingAward) {
-      return res.status(404).json({ message: "Award not found" });
+      return res.status(404).cjson({ message: "Award not found" });
     }
     if (!existingBusiness) {
-      return res.status(404).json({ message: "Business not found" });
+      return res.status(404).cjson({ message: "Business not found" });
     }
 
     existingBusinessAward.awardList = awardId;
     existingBusinessAward.business = businessId;
     await existingBusinessAward.save();
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Business award updated successfully",
       businessAward: existingBusinessAward,
     });
@@ -158,13 +158,13 @@ const archiveBusinessAward = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business award ID" });
+      return res.status(400).cjson({ message: "Invalid business award ID" });
     }
 
     const existingBusinessAward = await BusinessAwards.findById(id);
 
     if (!existingBusinessAward) {
-      return res.status(404).json({ message: "No business award found" });
+      return res.status(404).cjson({ message: "No business award found" });
     }
 
     existingBusinessAward.isArchived = isArchived;
@@ -172,7 +172,7 @@ const archiveBusinessAward = async (req, res) => {
 
     const action = isArchived ? "archived" : "unarchived";
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: `Business award ${action} successfully`,
       businessAward: existingBusinessAward,
     });
@@ -190,7 +190,7 @@ const isAwarded = async (req, res) => {
       await BusinessAwards.findById(businessAwardId);
 
     if (!existingBusinessAward) {
-      return res.status(404).json({ message: "No business award found" });
+      return res.status(404).cjson({ message: "No business award found" });
     }
 
     await BusinessAwards.findByIdAndUpdate(
@@ -202,7 +202,7 @@ const isAwarded = async (req, res) => {
       { new: true },
     );
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Business awarded successfully",
       businessAward: existingBusinessAward,
     });

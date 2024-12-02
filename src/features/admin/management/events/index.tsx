@@ -37,6 +37,16 @@ const Events = (): JSX.Element => {
     dispatch(setEvent(event));
   };
 
+  const handleBoothClick = (event: Event) => {
+    navigate("/admin/management/view-event/booth");
+    dispatch(setEvent(event));
+  };
+
+  const handleViolationClick = (event: Event) => {
+    navigate("/admin/management/violation");
+    dispatch(setEvent(event));
+  };
+
   const filteredEventList = eventList.filter(
     (event) =>
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -63,7 +73,9 @@ const Events = (): JSX.Element => {
           <SelectContent>
             <SelectGroup>
               <SelectItem value="all">All</SelectItem>
-              <SelectItem value="upcoming">Upcoming</SelectItem>
+              <SelectItem value="applicationOpen">
+                Open for Application
+              </SelectItem>
               <SelectItem value="ongoing">Ongoing</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
@@ -81,10 +93,7 @@ const Events = (): JSX.Element => {
           ) : (
             filteredEventList.map((event: Event) => (
               <div key={event._id}>
-                <Card
-                  className="p-6 space-y-3"
-                  onClick={() => handleEventClick(event)}
-                >
+                <Card className="p-6 space-y-3">
                   <div className="flex justify-between items-center">
                     <p className="text-xl font-bold">{event.title}</p>
 
@@ -109,7 +118,18 @@ const Events = (): JSX.Element => {
                     <p className="font-bold">Location</p>
                     {event.location}
                   </div>
-                  <Button onClick={() => handleEventClick(event)}>View</Button>
+                  <div className="flex gap-2">
+                    <Button onClick={() => handleEventClick(event)}>
+                      View
+                    </Button>
+                    <Button onClick={() => handleBoothClick(event)}>
+                      Booths
+                    </Button>
+
+                    <Button onClick={() => handleViolationClick(event)}>
+                      Violations
+                    </Button>
+                  </div>
                 </Card>
               </div>
             ))

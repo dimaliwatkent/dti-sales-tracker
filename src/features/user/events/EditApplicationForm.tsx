@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { useEditBusinessMutation } from "@/api/business/businessApiSlice";
 
@@ -663,7 +664,15 @@ const EditApplicationForm = () => {
               )}
             />
             <div>
-              <AgreementForm agreed={agreed} setAgreed={setAgreed} />
+              <div className="flex items-center gap-2 pt-2">
+                <Checkbox
+                  checked={agreed}
+                  onCheckedChange={() => setAgreed(!agreed)}
+                />
+                <p className="font-bold">I AGREE TO THE</p>
+
+                <AgreementForm />
+              </div>
               <ReviewForm
                 formData={form.watch()}
                 onSubmit={form.handleSubmit(onSubmit)}

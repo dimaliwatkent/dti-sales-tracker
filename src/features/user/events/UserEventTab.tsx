@@ -59,7 +59,7 @@ const UserEventTab = () => {
                     <p className="font-bold">Business</p>
                   </div>
                   <div className="flex gap-2">
-                    <p className="font-bold">Name</p>
+                    <p className="font-bold">Business Name</p>
                     {event.business.name}
                   </div>
 
@@ -68,10 +68,6 @@ const UserEventTab = () => {
                     {event.business.applicationStatus}
                   </div>
 
-                  <div className="flex gap-2">
-                    <p className="font-bold">Business Name</p>
-                    {event.business.name}
-                  </div>
                 </div>
               </Card>
             </div>

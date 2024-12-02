@@ -9,7 +9,7 @@ const moment = require("moment");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // GET /sale - return unarchived events
@@ -20,7 +20,7 @@ const getEventSale = async (req, res) => {
     const isArchived = req.query.isArchived === "true";
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const sales = await Sale.find({ event: eventId, isArchived })
@@ -29,7 +29,7 @@ const getEventSale = async (req, res) => {
       .exec();
 
     if (!sales.length) {
-      return res.status(404).json({ message: "No sales found" });
+      return res.status(404).cjson({ message: "No sales found" });
     }
 
     let eventTotalSale = 0;
@@ -40,7 +40,7 @@ const getEventSale = async (req, res) => {
     //   });
     // });
 
-    return res.status(200).json({ sale: sales, eventTotalSale });
+    return res.status(200).cjson({ sale: sales, eventTotalSale });
   } catch (err) {
     handleError(res, err);
   }
@@ -64,7 +64,7 @@ const getRecordData = async (req, res) => {
       .exec();
 
     if (!eventList || eventList.length === 0) {
-      return res.status(200).json({ record: [] });
+      return res.status(200).cjson({ record: [] });
     }
 
     const recordData = eventList.map((event) => {
@@ -116,7 +116,7 @@ const getRecordData = async (req, res) => {
       };
     });
 
-    return res.status(200).json({ record: recordData });
+    return res.status(200).cjson({ record: recordData });
   } catch (err) {
     handleError(res, err);
   }
@@ -127,16 +127,16 @@ const getSale = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid sale ID" });
+      return res.status(400).cjson({ message: "Invalid sale ID" });
     }
 
     const sale = await Sale.findById(id);
     if (!sale) {
-      return res.status(404).json({ message: "No sale found" });
+      return res.status(404).cjson({ message: "No sale found" });
     }
     return res
       .status(200)
-      .json({ message: "Sale retrieved successfully", sale });
+      .cjson({ message: "Sale retrieved successfully", sale });
   } catch (err) {
     handleError(res, err);
   }
@@ -148,7 +148,7 @@ const getSale = async (req, res) => {
 //     const business = await Business.findById(businessId);
 //
 //     if (!business) {
-//       return res.status(404).json({ message: "Business not found" });
+//       return res.status(404).cjson({ message: "Business not found" });
 //     }
 //
 //     const salesRecord = [];
@@ -171,7 +171,7 @@ const getSale = async (req, res) => {
 //       })),
 //     });
 //
-//     return res.status(200).json({ salesRecord });
+//     return res.status(200).cjson({ salesRecord });
 //   } catch (err) {
 //     handleError(res, err);
 //   }
@@ -182,7 +182,7 @@ const generateDailySale = async (req, res) => {
     const { userId } = req.params;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).cjson({ message: "Invalid user ID" });
     }
 
     // Validate if user exists
@@ -202,7 +202,7 @@ const generateDailySale = async (req, res) => {
     });
 
     if (events.length === 0) {
-      return res.status(404).json({
+      return res.status(404).cjson({
         message: "No ongoing events found for this user's businesses",
       });
     }
@@ -242,7 +242,7 @@ const generateDailySale = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ sale: sales });
+    return res.status(200).cjson({ sale: sales });
   } catch (err) {
     handleError(res, err);
   }
@@ -253,12 +253,12 @@ const updateSale = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid sale ID" });
+      return res.status(400).cjson({ message: "Invalid sale ID" });
     }
 
     const sale = await Sale.findById(id);
     if (!sale) {
-      return res.status(404).json({ message: "Sale not found" });
+      return res.status(404).cjson({ message: "Sale not found" });
     }
 
     const { transaction } = req.body;
@@ -273,7 +273,9 @@ const updateSale = async (req, res) => {
     }
 
     await sale.save();
-    return res.status(200).json({ message: "Sale updated successfully", sale });
+    return res
+      .status(200)
+      .cjson({ message: "Sale updated successfully", sale });
   } catch (err) {
     handleError(res, err);
   }
@@ -284,7 +286,7 @@ const getAllEventSales = async (req, res) => {
     const { eventId } = req.params;
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const sales = await Sale.find({ event: eventId })
@@ -292,7 +294,7 @@ const getAllEventSales = async (req, res) => {
       .exec();
 
     if (!sales.length) {
-      return res.status(404).json({ message: "No sales found" });
+      return res.status(404).cjson({ message: "No sales found" });
     }
 
     const businessSales = {};
@@ -330,7 +332,7 @@ const getAllEventSales = async (req, res) => {
       businessSales[businessName].totalSales += saleTotal;
     });
 
-    return res.status(200).json(Object.values(businessSales));
+    return res.status(200).cjson(Object.values(businessSales));
   } catch (err) {
     handleError(res, err);
   }
@@ -343,12 +345,12 @@ const archiveSale = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid sale ID" });
+      return res.status(400).cjson({ message: "Invalid sale ID" });
     }
 
     const sale = await Sale.findById(id);
     if (!sale) {
-      return res.status(404).json({ message: "Sale not found" });
+      return res.status(404).cjson({ message: "Sale not found" });
     }
     sale.isArchived = isArchived;
 
@@ -356,7 +358,7 @@ const archiveSale = async (req, res) => {
     const action = isArchived ? "archived" : "unarchived";
     return res
       .status(200)
-      .json({ message: `Sale ${action} successfully`, sale });
+      .cjson({ message: `Sale ${action} successfully`, sale });
   } catch (err) {
     handleError(res, err);
   }

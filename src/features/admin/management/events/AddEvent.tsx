@@ -114,7 +114,7 @@ const AddEvent = () => {
               <FormItem>
                 <FormLabel>Location</FormLabel>
                 <FormControl>
-                  <Input {...field} />
+                  <Input placeholder="Boac, Marinduque"{...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

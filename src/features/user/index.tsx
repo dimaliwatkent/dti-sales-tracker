@@ -8,4 +8,3 @@ export { default as Events } from "./events";
 export { default as ViewEvent } from "./events/ViewEvent";
 export { default as ApplicationForm } from "./events/ApplicationForm";
 export { default as EditApplicationForm } from "./events/EditApplicationForm";
-export { default as Profile } from "./profile";

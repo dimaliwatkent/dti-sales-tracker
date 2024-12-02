@@ -7,7 +7,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // GET /custom-product - return unarchived product
@@ -17,9 +17,9 @@ const getCustomProductList = async (req, res) => {
     const isArchived = req.query.isArchived === "true";
     const customProduct = await CustomProduct.find({ isArchived });
     if (!customProduct.length) {
-      return res.status(404).json({ message: "No custom product found" });
+      return res.status(404).cjson({ message: "No custom product found" });
     }
-    return res.status(200).json({
+    return res.status(200).cjson({
       // message: 'Custom products retrieved successfully',
       customProduct,
     });
@@ -34,14 +34,14 @@ const getCustomProduct = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid custom product ID" });
+      return res.status(400).cjson({ message: "Invalid custom product ID" });
     }
 
     const customProduct = await CustomProduct.findById(id);
     if (!customProduct) {
-      return res.status(404).json({ message: "No custom product found" });
+      return res.status(404).cjson({ message: "No custom product found" });
     }
-    return res.status(200).json({
+    return res.status(200).cjson({
       // message: 'Custom product retrieved successfully',
       customProduct,
     });
@@ -56,7 +56,7 @@ const getCustomProductByUser = async (req, res) => {
     const { userId } = req.params;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).cjson({ message: "Invalid user ID" });
     }
 
     const customProducts = await CustomProduct.find({ user: userId });
@@ -64,9 +64,9 @@ const getCustomProductByUser = async (req, res) => {
     if (!customProducts.length) {
       return res
         .status(404)
-        .json({ message: "No custom products found for this user" });
+        .cjson({ message: "No custom products found for this user" });
     }
-    return res.status(200).json({
+    return res.status(200).cjson({
       // message: 'Custom products retrieved successfully',
       customProduct: customProducts,
     });
@@ -80,19 +80,19 @@ const addCustomProduct = async (req, res) => {
     const { userId, name, price } = req.body;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).cjson({ message: "Invalid user ID" });
     }
 
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).cjson({ message: "User not found" });
     }
 
     const existingProduct = await CustomProduct.findOne({ name });
 
     if (existingProduct) {
-      return res.status(400).json({ message: "Product already exists" });
+      return res.status(400).cjson({ message: "Product already exists" });
     }
 
     const customProduct = new CustomProduct({
@@ -105,7 +105,7 @@ const addCustomProduct = async (req, res) => {
     await User.findByIdAndUpdate(userId, {
       $push: { customProductList: customProduct._id },
     });
-    return res.status(201).json({
+    return res.status(201).cjson({
       message: "Product created successfully",
       customProduct,
     });
@@ -121,24 +121,24 @@ const editCustomProduct = async (req, res) => {
     const { userId, name, price } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid custom product ID" });
+      return res.status(400).cjson({ message: "Invalid custom product ID" });
     }
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).cjson({ message: "Invalid user ID" });
     }
 
     const customProduct = await CustomProduct.findById(id);
 
     if (!customProduct) {
-      return res.status(404).json({ message: "Custom product not found" });
+      return res.status(404).cjson({ message: "Custom product not found" });
     }
     customProduct.user = userId;
     customProduct.name = name;
     customProduct.price = price;
 
     await customProduct.save();
-    return res.status(201).json({
+    return res.status(201).cjson({
       message: "Product updated successfully",
       customProduct,
     });
@@ -153,17 +153,17 @@ const deleteCustomProduct = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid custom product ID" });
+      return res.status(400).cjson({ message: "Invalid custom product ID" });
     }
 
     const customProduct = await CustomProduct.findByIdAndDelete(id);
     if (!customProduct) {
-      return res.status(404).json({ message: "Custom product not found" });
+      return res.status(404).cjson({ message: "Custom product not found" });
     }
     await User.findByIdAndUpdate(customProduct.user, {
       $pull: { customProductList: id },
     });
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Product deleted successfully",
       customProduct,
     });
@@ -179,19 +179,19 @@ const archiveCustomProduct = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid custom product ID" });
+      return res.status(400).cjson({ message: "Invalid custom product ID" });
     }
 
     const customProduct = await CustomProduct.findById(id);
     if (!customProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).cjson({ message: "Product not found" });
     }
 
     customProduct.isArchived = isArchived;
 
     await customProduct.save();
     const action = isArchived ? "archived" : "unarchived";
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: `Product ${action} successfully`,
       customProduct: customProduct,
     });

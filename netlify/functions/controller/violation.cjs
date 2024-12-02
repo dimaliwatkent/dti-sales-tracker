@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // get all violations
@@ -15,12 +15,12 @@ const getViolationList = async (req, res) => {
     const violation = await Violation.find({ isArchived });
 
     if (!violation.length) {
-      return res.status(404).json({ message: "No violations found" });
+      return res.status(404).cjson({ message: "No violations found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Violations retrieved successfully", violation });
+      .cjson({ message: "Violations retrieved successfully", violation });
   } catch (err) {
     handleError(res, err);
   }
@@ -32,18 +32,18 @@ const getViolation = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid violation ID" });
+      return res.status(400).cjson({ message: "Invalid violation ID" });
     }
 
     const violation = await Violation.findById(id);
 
     if (!violation) {
-      return res.status(404).json({ message: "No violation found" });
+      return res.status(404).cjson({ message: "No violation found" });
     }
 
     return res
       .status(200)
-      .json({ message: "Violation retrieved successfully", violation });
+      .cjson({ message: "Violation retrieved successfully", violation });
   } catch (err) {
     handleError(res, err);
   }
@@ -56,7 +56,7 @@ const createViolation = async (req, res) => {
     const existingViolation = await Violation.findOne({ name });
 
     if (existingViolation) {
-      return res.status(409).json({ message: "Violation already exists" });
+      return res.status(409).cjson({ message: "Violation already exists" });
     }
 
     const newViolation = new Violation({
@@ -67,7 +67,7 @@ const createViolation = async (req, res) => {
 
     await newViolation.save();
 
-    return res.status(201).json({
+    return res.status(201).cjson({
       message: "Violation created successfully",
       violation: newViolation,
     });
@@ -83,13 +83,13 @@ const updateViolation = async (req, res) => {
     const { name, fee, description } = req.body;
 
     if (!violationId || !mongoose.isValidObjectId(violationId)) {
-      return res.status(400).json({ message: "Invalid award ID" });
+      return res.status(400).cjson({ message: "Invalid award ID" });
     }
 
     const existingViolation = await Violation.findById(violationId);
 
     if (!existingViolation) {
-      return res.status(404).json({ message: "No violation found" });
+      return res.status(404).cjson({ message: "No violation found" });
     }
 
     existingViolation.name = name;
@@ -98,7 +98,7 @@ const updateViolation = async (req, res) => {
 
     await existingViolation.save();
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Violation updated successfully",
       violation: existingViolation,
     });
@@ -114,13 +114,13 @@ const archiveViolation = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid violation ID" });
+      return res.status(400).cjson({ message: "Invalid violation ID" });
     }
 
     const existingViolation = await Violation.findById(id);
 
     if (!existingViolation) {
-      return res.status(404).json({ message: "No violation found" });
+      return res.status(404).cjson({ message: "No violation found" });
     }
 
     existingViolation.isArchived = isArchived;
@@ -128,7 +128,7 @@ const archiveViolation = async (req, res) => {
 
     const action = isArchived ? "archived" : "unarchived";
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: `Violation ${action} successfully`,
       violation: existingViolation,
     });

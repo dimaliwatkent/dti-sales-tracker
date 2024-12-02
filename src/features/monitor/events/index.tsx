@@ -23,7 +23,7 @@ const MonitorEvents = () => {
     <div>
       <div>
         <ScrollArea className="w-full h-[calc(100vh-230px)] md:h-[calc(100vh-150px)]">
-          <div>
+          <div className="flex flex-col gap-4">
             {eventList && eventList.length > 0 ? (
               eventList.map((event: EventBusinessMonitor) => (
                 <div key={event._id}>

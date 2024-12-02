@@ -109,11 +109,7 @@ const Sale = () => {
       ).toFixed(2),
     };
     setTotalAmount(newTotalAmount);
-  }, [transaction]);
-
-  if (isLoadingGenerate) {
-    return <div>Loading...</div>;
-  }
+  }, [transaction, activeSale]);
 
   if (isLoadingGenerate) {
     return (

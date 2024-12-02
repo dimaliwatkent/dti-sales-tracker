@@ -1,12 +1,11 @@
-import { selectEvent } from "@/api/event/eventSlice";
-import { useSelector } from "react-redux";
 import { formatDateTime } from "@/utils/formatTime";
 import { eventStatusMap } from "@/constants";
 
 import BusinessCard from "@/features/admin/management/business/BusinessCard";
+import { useEventData } from "@/hooks/dataHooks";
 
 const ViewEvent = (): JSX.Element => {
-  const event = useSelector(selectEvent);
+  const event = useEventData();
 
   return (
     <div>

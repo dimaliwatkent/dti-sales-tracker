@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 
 import { violationList } from "@/constants";
 import { useUserData } from "@/hooks/dataHooks";
-import { useAddViolationMutation } from "@/api/business/businessApiSlice";
+import { useAddViolationMutation } from "@/api/violation/violationApiSlice";
 
 import { Violation as ViolationType } from "@/types/ViolationType";
 import { useToast } from "@/components/ui/use-toast";

@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // get
@@ -16,11 +16,11 @@ const getProductList = async (req, res) => {
     const product = await Product.find({ isArchived });
 
     if (!product.length) {
-      return res.status(404).json({ message: "No product found" });
+      return res.status(404).cjson({ message: "No product found" });
     }
     return res
       .status(200)
-      .json({ message: "Product list retrieved successfully", product });
+      .cjson({ message: "Product list retrieved successfully", product });
   } catch (err) {
     handleError(res, err);
   }
@@ -32,17 +32,17 @@ const getProduct = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid award ID" });
+      return res.status(400).cjson({ message: "Invalid award ID" });
     }
 
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ message: "No product found" });
+      return res.status(404).cjson({ message: "No product found" });
     }
     return res
       .status(200)
-      .json({ message: "Product retrieved successfully", product });
+      .cjson({ message: "Product retrieved successfully", product });
   } catch (err) {
     handleError(res, err);
   }
@@ -56,18 +56,18 @@ const addProduct = async (req, res) => {
     const { productName, productPrice } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid product ID" });
+      return res.status(400).cjson({ message: "Invalid product ID" });
     }
 
     const existingProduct = await Product.findOne({ productName });
     const existingBusiness = await Business.findById(id);
 
     if (existingProduct) {
-      return res.status(409).json({ message: "Product already exists" });
+      return res.status(409).cjson({ message: "Product already exists" });
     }
 
     if (!existingBusiness) {
-      return res.status(404).json({ message: "Business not found" });
+      return res.status(404).cjson({ message: "Business not found" });
     }
 
     const newProduct = new Product({
@@ -86,7 +86,7 @@ const addProduct = async (req, res) => {
 
     return res
       .status(201)
-      .json({ message: "Product added successfully", product: newProduct });
+      .cjson({ message: "Product added successfully", product: newProduct });
   } catch (err) {
     handleError(res, err);
   }
@@ -99,20 +99,20 @@ const updateProduct = async (req, res) => {
     const { productName, productPrice } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid product ID" });
+      return res.status(400).cjson({ message: "Invalid product ID" });
     }
 
     const existingProduct = await Product.findById(id);
 
     if (!existingProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).cjson({ message: "Product not found" });
     }
 
     existingProduct.productName = productName;
     existingProduct.productPrice = productPrice;
     await existingProduct.save();
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Product updated successfully",
       product: existingProduct,
     });
@@ -127,13 +127,13 @@ const archiveProduct = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid product ID" });
+      return res.status(400).cjson({ message: "Invalid product ID" });
     }
 
     const existingProduct = await Product.findById(id);
 
     if (!existingProduct) {
-      return res.status(404).json({ message: "Product not found" });
+      return res.status(404).cjson({ message: "Product not found" });
     }
 
     existingProduct.isArchived = isArchived;
@@ -141,7 +141,7 @@ const archiveProduct = async (req, res) => {
 
     const action = isArchived ? "archived" : "unarchived";
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: `Product ${action} successfully`,
       product: existingProduct,
     });

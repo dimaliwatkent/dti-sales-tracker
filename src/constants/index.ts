@@ -4,6 +4,7 @@ import {
   GearIcon,
   ClipboardIcon,
   CalendarIcon,
+  AvatarIcon,
 } from "@radix-ui/react-icons";
 import { SidebarItem } from "@/types/OtherTypes";
 
@@ -50,6 +51,11 @@ const sidebarItems: SidebarItem[] = [
     text: "Events",
     icon: CalendarIcon,
     path: "/events",
+  },
+  {
+    text: "Profile",
+    icon: AvatarIcon,
+    path: "/profile",
   },
   {
     text: "Registration",

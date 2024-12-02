@@ -52,7 +52,9 @@ export const applicationSchema = z.object({
     })
     .min(3, "Designation must be at least 3 characters")
     .max(50, "Designation cannot exceed 50 characters"),
-  contactPersonSex: z.string(),
+  contactPersonSex: z
+    .string()
+    .min(1, { message: "At least one sex option is required" }),
   paymentOption: z
     .array(z.string())
     .min(1, { message: "At least one payment option is required" }),
@@ -70,13 +72,10 @@ export const applicationSchema = z.object({
   category: z
     .array(z.string())
     .min(1, { message: "At least one category is required" }),
-  type: z.string({
-    required_error: "Business Profile is required",
-    invalid_type_error: "Business Profile must be a string",
-  }),
-  assetSize: z.string({
-    required_error: "Asset Size is required",
-  }),
+  type: z.string().min(1, { message: "At least one type option is required" }),
+  assetSize: z
+    .string()
+    .min(1, { message: "At least one asset size option is required" }),
   targetSale: z.coerce
     .number()
     .gt(0, { message: "Target Sale must be greater than zero" }),
@@ -92,6 +91,15 @@ export const applicationSchema = z.object({
   dateOfEstablishment: z
     .string()
     .min(10, { message: "Date of establishment required" }),
+  logoFile: z.string(),
+
+  waiverFile: z.string(),
+  signedTermsFile: z.string(),
+  paymentQRFile: z.string(),
+  businessNameRegFile: z.string(),
+  validIdFile: z.string(),
+  menuCopyFile: z.string(),
+  productPhotosFile: z.string(),
 });
 
 export const editApplicationSchema = applicationSchema

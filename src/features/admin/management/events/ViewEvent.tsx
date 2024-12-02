@@ -81,7 +81,10 @@ const ViewEvent = (): JSX.Element => {
 
       <div>
         <p className="text-xl font-bold mb-2">Businesses</p>
-        <Tabs defaultValue="applicants" className="">
+        <Tabs
+          defaultValue={event.status === "ongoing" ? "approved" : "applicants"}
+          className=""
+        >
           <TabsList>
             <TabsTrigger value="applicants">Applicants</TabsTrigger>
             <TabsTrigger value="forcompletion">For Completion</TabsTrigger>

@@ -9,28 +9,17 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
 
-interface AgreementFormProps {
-  agreed: boolean;
-  setAgreed: (agreed: boolean) => void;
-}
-
-const AgreementForm = ({ agreed, setAgreed }: AgreementFormProps) => {
+const AgreementForm = () => {
   const [open, setOpen] = useState(false);
-
-  const handleConfirm = () => {
-    setOpen(false);
-  };
-  const handleAgreementChange = () => {
-    setAgreed(!agreed);
-  };
 
   return (
     <div className="">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button className="w-full my-2">View Registration Agreement</Button>
+          <a className="w-full my-2 font-bold text-blue-500">
+            TERMS AND CONDITIONS
+          </a>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
@@ -98,24 +87,11 @@ const AgreementForm = ({ agreed, setAgreed }: AgreementFormProps) => {
                   r04b.marinduque@dti.gov.ph
                 </span>
               </p>
-              <p className="pt-6">
-                By checking the box below, I acknowledge that I have read,
-                understood, and agreed to the terms and conditions of this
-                agreement.
-              </p>
-            </div>
-
-            <div
-              className="flex items-center gap-2 pt-2"
-              onClick={handleAgreementChange}
-            >
-              <Checkbox checked={agreed} />
-              <p className="font-bold">I AGREE TO THE TERMS AND CONDITIONS</p>
             </div>
           </ScrollArea>
           <DialogFooter>
-            <Button type="button" onClick={handleConfirm} disabled={!agreed}>
-              Agree
+            <Button type="button" onClick={() => setOpen(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

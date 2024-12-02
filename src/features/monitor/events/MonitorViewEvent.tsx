@@ -35,7 +35,7 @@ const MonitorViewEvent = () => {
               </div>
             ))
           ) : (
-            <div>Currently no ongoing events</div>
+            <div>Currently no business</div>
           )}
         </ScrollArea>
       </div>

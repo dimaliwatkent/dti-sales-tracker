@@ -1,6 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
+const multer = require("multer");
+
+const storage = multer.memoryStorage();
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+});
+
 const {
   getBusinessList,
   getBusiness,
@@ -11,7 +19,7 @@ const {
 } = require("../controller/business.cjs");
 
 router.get("/", getBusinessList);
-router.post("/", addBusiness);
+router.post("/", upload.single("logoFile"), addBusiness);
 router.get("/:id", getBusiness);
 router.put("/:id", editBusiness);
 router.patch("/:id", archiveBusiness);

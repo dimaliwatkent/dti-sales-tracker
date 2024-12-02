@@ -1,13 +1,12 @@
 const Event = require("../models/event.cjs");
 const User = require("../models/user.cjs");
-const Business = require("../models/business.cjs");
 const mongoose = require("mongoose");
 
 // handle error
 const handleError = (res, err) => {
   return res
     .status(500)
-    .json({ message: "An error occurred", err: err.message });
+    .cjson({ message: "An error occurred", err: err.message });
 };
 
 // Get all events
@@ -70,11 +69,11 @@ const getEventList = async (req, res) => {
     );
 
     if (!events.length) {
-      return res.status(404).json({ message: "No events found" });
+      return res.status(404).cjson({ message: "No events found" });
     }
     return res
       .status(200)
-      .json({ message: "Events retrieved successfully", event: events });
+      .cjson({ message: "Events retrieved successfully", event: events });
   } catch (err) {
     handleError(res, err);
   }
@@ -85,19 +84,27 @@ const getUserEventList = async (req, res) => {
     const { userId } = req.params;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
+      return res.status(400).cjson({ message: "Invalid user ID" });
     }
 
-    const user = await User.findById(userId).populate("businessList").exec();
+    const user = await User.findById(userId)
+      .populate({
+        path: "businessList",
+        populate: {
+          path: "violationList",
+          model: "businessViolation",
+        },
+      })
+      .exec();
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).cjson({ message: "User not found" });
     }
 
     const businessList = user.businessList;
 
     const eventList = await Event.find().exec();
     if (!eventList) {
-      return res.status(404).json({ message: "No event found" });
+      return res.status(404).cjson({ message: "No event found" });
     }
 
     const userEventList = eventList
@@ -116,7 +123,7 @@ const getUserEventList = async (req, res) => {
       (event) => event.status === "applicationOpen",
     );
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Event retrieved successfully",
       userEventList,
       openEventList,
@@ -138,10 +145,10 @@ const getMonitorEventList = async (req, res) => {
       })
       .exec();
     if (!eventList) {
-      return res.status(404).json({ message: "No ongoing events found" });
+      return res.status(404).cjson({ message: "No ongoing events found" });
     }
 
-    return res.status(200).json({
+    return res.status(200).cjson({
       message: "Ongoing events retrieved successfully",
       eventList,
     });
@@ -156,7 +163,7 @@ const getEvent = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const event = await Event.findById(id)
@@ -176,11 +183,11 @@ const getEvent = async (req, res) => {
       })
       .exec();
     if (!event) {
-      return res.status(404).json({ message: "No event found" });
+      return res.status(404).cjson({ message: "No event found" });
     }
     return res
       .status(200)
-      .json({ message: "Event retrieved successfully", event });
+      .cjson({ message: "Event retrieved successfully", event });
   } catch (err) {
     handleError(res, err);
   }
@@ -204,7 +211,7 @@ const addEvent = async (req, res) => {
 
     const existingEvent = await Event.findOne({ title });
     if (existingEvent) {
-      return res.status(422).json({ message: "Event already exists" });
+      return res.status(422).cjson({ message: "Event already exists" });
     }
 
     const newEvent = new Event({
@@ -223,7 +230,7 @@ const addEvent = async (req, res) => {
 
     return res
       .status(201)
-      .json({ message: "Event created successfully", event: newEvent });
+      .cjson({ message: "Event created successfully", event: newEvent });
   } catch (err) {
     handleError(res, err);
   }
@@ -248,12 +255,12 @@ const editEvent = async (req, res) => {
     } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const event = await Event.findById(id);
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).cjson({ message: "Event not found" });
     }
 
     event.title = title;
@@ -270,7 +277,7 @@ const editEvent = async (req, res) => {
 
     await event.save();
 
-    res.status(200).json({ message: "Event updated successfully", event });
+    res.status(200).cjson({ message: "Event updated successfully", event });
   } catch (err) {
     handleError(res, err);
   }
@@ -283,35 +290,35 @@ const editEvent = async (req, res) => {
 //     const { businessId } = req.body;
 //
 //     if (!id || !mongoose.isValidObjectId(id)) {
-//       return res.status(400).json({ message: "Invalid event ID" });
+//       return res.status(400).cjson({ message: "Invalid event ID" });
 //     }
 //
 //     if (!businessId || !mongoose.isValidObjectId(businessId)) {
-//       return res.status(400).json({ message: "Invalid business ID" });
+//       return res.status(400).cjson({ message: "Invalid business ID" });
 //     }
 //
 //     const event = await Event.findById(id);
 //     if (!event) {
-//       return res.status(404).json({ message: "Event not found" });
+//       return res.status(404).cjson({ message: "Event not found" });
 //     }
 //
 //     const business = await Business.findById(businessId);
 //     if (!business) {
-//       return res.status(404).json({ message: "Business not found" });
+//       return res.status(404).cjson({ message: "Business not found" });
 //     }
 //
 //     if (business.eventList.includes(event._id)) {
-//       return res.status(422).json({ message: "Business already applied" });
+//       return res.status(422).cjson({ message: "Business already applied" });
 //     }
 //
 //     if (["ongoing", "completed", "cancelled"].includes(event.status)) {
-//       return res.status(422).json({ message: "Cannot apply to this event" });
+//       return res.status(422).cjson({ message: "Cannot apply to this event" });
 //     }
 //
 //     event.applicantList.push({ business: business._id });
 //     await event.save();
 //
-//     return res.status(200).json({ message: "Business applied successfully" });
+//     return res.status(200).cjson({ message: "Business applied successfully" });
 //   } catch (err) {
 //     handleError(res, err);
 //   }
@@ -324,12 +331,12 @@ const archiveEvent = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid event ID" });
+      return res.status(400).cjson({ message: "Invalid event ID" });
     }
 
     const event = await Event.findById(id);
     if (!event) {
-      return res.status(404).json({ message: "Event not found" });
+      return res.status(404).cjson({ message: "Event not found" });
     }
     event.isArchived = isArchived;
     await event.save();
@@ -337,7 +344,7 @@ const archiveEvent = async (req, res) => {
 
     return res
       .status(200)
-      .json({ message: `Event ${action} successfully`, event });
+      .cjson({ message: `Event ${action} successfully`, event });
   } catch (err) {
     handleError(res, err);
   }

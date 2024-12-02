@@ -22,6 +22,7 @@ const User = () => {
   const filteredUserList = userList.filter(
     (user) =>
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      user.role !== "rejected" &&
       (selectedRole !== "all" ? user.role === selectedRole : true),
   );
 

@@ -3,8 +3,6 @@ import { User } from "@/types/UserType";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
-import { setActiveUser } from "@/api/user/userSlice";
-import { useDispatch } from "react-redux";
 import { roleMap } from "@/constants";
 import { Mail, Phone } from "lucide-react";
 
@@ -13,20 +11,22 @@ interface UserCardProps {
 }
 
 const UserCard = ({ user }: UserCardProps) => {
-  const handleUserClick = (user: User) => {
-    dispatch(setActiveUser(user));
-  };
-
-  const dispatch = useDispatch();
-
   return (
     <div>
-      <Card
-        className={`${user.isArchived ? "opacity-30" : ""} p-6`}
-        onClick={() => handleUserClick(user)}
-      >
+      <Card className={`${user.isArchived ? "opacity-30" : ""} p-6`}>
         <div className="flex flex-col items-center ">
-          <div className="aspect-square h-20 bg-secondary rounded-full" />
+          {user?.picture ? (
+            <div className="aspect-square h-20 rounded-full overflow-hidden">
+              <img
+                src={user?.picture}
+                alt="profile-picture"
+                className="object-cover h-full w-full"
+              />
+            </div>
+          ) : (
+            <div className="aspect-square h-20 bg-secondary rounded-full" />
+          )}
+
           <p className="font-bold text-lg">{user.name}</p>
 
           <p className="text-primary/70 text-sm">

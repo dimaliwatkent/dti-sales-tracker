@@ -1,4 +1,5 @@
 import { Business, BusinessWithViolation } from "./BusinessType";
+import { BoothType } from "./BoothType";
 /**
  * Interface for event data
  */
@@ -16,7 +17,7 @@ export interface Event {
   applicationStart: string;
   applicationEnd: string;
   status: string;
-  booth: string[];
+  boothList: BoothType[];
   isArchived: boolean;
 }
 

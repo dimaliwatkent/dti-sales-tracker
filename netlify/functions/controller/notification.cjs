@@ -4,9 +4,9 @@ const createNotification = async (req, res) => {
   try {
     const notification = new Notification(req.body);
     await notification.save();
-    res.status(201).json({ notification });
+    res.status(201).cjson({ notification });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).cjson({ message: error.message });
   }
 };
 
@@ -15,9 +15,9 @@ const getNotifications = async (req, res) => {
     const notifications = await Notification.find({
       userId: req.params.userId,
     });
-    res.json({ notification: notifications });
+    res.cjson({ notification: notifications });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(404).cjson({ message: error.message });
   }
 };
 
@@ -28,18 +28,18 @@ const updateNotification = async (req, res) => {
       req.body,
       { new: true },
     );
-    res.json({ notification });
+    res.cjson({ notification });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(404).cjson({ message: error.message });
   }
 };
 
 const deleteNotification = async (req, res) => {
   try {
     await Notification.findByIdAndDelete(req.params.id);
-    res.json({ message: "Notification deleted successfully" });
+    res.cjson({ message: "Notification deleted successfully" });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(404).cjson({ message: error.message });
   }
 };
 
@@ -50,9 +50,9 @@ const markAsRead = async (req, res) => {
       { read: true },
       { new: true },
     );
-    res.json({ notification });
+    res.cjson({ notification });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    res.status(404).cjson({ message: error.message });
   }
 };
 

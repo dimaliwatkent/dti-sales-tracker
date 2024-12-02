@@ -9,6 +9,7 @@ export interface User {
   email: string;
   phoneNumber: number;
   role: string;
+  picture: string;
   refreshToken?: string;
   isArchived: boolean;
   createdAt: Date;
