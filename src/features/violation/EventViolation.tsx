@@ -16,23 +16,25 @@ const EventViolation = () => {
     dispatch(setActiveBusiness(business));
   };
 
+  const businessesWithViolations = businessList.filter(
+    (business) => business.violationList && business.violationList.length > 0,
+  );
+
   return (
     <div>
       <div>
         <p className="text-xl font-bold pb-6">Violators</p>
       </div>
       <div className="flex flex-col gap-4">
-        {businessList && businessList.length > 0 ? (
-          businessList.map((business) => (
+        {businessesWithViolations && businessesWithViolations.length > 0 ? (
+          businessesWithViolations.map((business) => (
             <div key={business._id} className="border p-6 rounded-lg">
               <div className="space-y-4">
                 <p className="text-lg font-bold">{business.name}</p>
                 <p className="">Booth Number: {business.boothNumber}</p>
-                {business.violationList && (
-                  <p className="">
-                    Number of Violations: {business.violationList.length}
-                  </p>
-                )}
+                <p className="">
+                  Number of Violations: {business.violationList.length}
+                </p>
                 <Button onClick={() => handleViolationClick(business)}>
                   Violations
                 </Button>
@@ -40,7 +42,7 @@ const EventViolation = () => {
             </div>
           ))
         ) : (
-          <div>Currently no ongoing events</div>
+          <div>No businesses with violations found.</div>
         )}
       </div>
     </div>
