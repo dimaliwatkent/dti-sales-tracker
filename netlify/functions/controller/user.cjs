@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .cjson({ message: "An error occurred", err: err.message });
+    .json({ message: "An error occurred", err: err.message });
 };
 
 // Get
@@ -19,12 +19,12 @@ const getUserList = async (req, res) => {
     );
 
     if (!userList.length) {
-      return res.status(404).cjson({ message: "No users found" });
+      return res.status(404).json({ message: "No users found" });
     }
 
     return res
       .status(200)
-      .cjson({ message: "User list retrieved successfully", user: userList });
+      .json({ message: "User list retrieved successfully", user: userList });
   } catch (err) {
     handleError(res, err);
   }
@@ -36,19 +36,19 @@ const getUser = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid user ID" });
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     // const user = await User.findById(id).populate("businessList").exec();
     const user = await User.findById(id).populate("businessList").exec();
 
     if (!user) {
-      return res.status(404).cjson({ message: "No user found" });
+      return res.status(404).json({ message: "No user found" });
     }
 
     return res
       .status(200)
-      .cjson({ message: "User retrieved successfully", user });
+      .json({ message: "User retrieved successfully", user });
   } catch (err) {
     handleError(res, err);
   }
@@ -61,13 +61,13 @@ const updateUser = async (req, res) => {
     const { name, email, password, phoneNumber, role } = req.body;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).cjson({ message: "Invalid user ID" });
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     const existingUser = await User.findById(userId);
 
     if (!existingUser) {
-      return res.status(404).cjson({ message: "No user found" });
+      return res.status(404).json({ message: "No user found" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -81,7 +81,7 @@ const updateUser = async (req, res) => {
 
     return res
       .status(200)
-      .cjson({ message: "User updated successfully", user: existingUser });
+      .json({ message: "User updated successfully", user: existingUser });
   } catch (err) {
     handleError(res, err);
   }
@@ -94,19 +94,19 @@ const changeRole = async (req, res) => {
     const { role } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid user ID" });
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     const existingUser = await User.findById(id);
 
     if (!existingUser) {
-      return res.status(404).cjson({ message: "No user found" });
+      return res.status(404).json({ message: "No user found" });
     }
 
     existingUser.role = role;
     await existingUser.save();
 
-    return res.status(200).cjson({
+    return res.status(200).json({
       message: "User's role updated successfully",
       user: existingUser,
     });
@@ -122,13 +122,13 @@ const archiveUser = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid user ID" });
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     const existingUser = await User.findById(id);
 
     if (!existingUser) {
-      return res.status(404).cjson({ message: "No user found" });
+      return res.status(404).json({ message: "No user found" });
     }
 
     existingUser.isArchived = isArchived;
@@ -138,7 +138,7 @@ const archiveUser = async (req, res) => {
 
     return res
       .status(200)
-      .cjson({ message: `User ${action} successfully`, user: existingUser });
+      .json({ message: `User ${action} successfully`, user: existingUser });
   } catch (err) {
     handleError(res, err);
   }

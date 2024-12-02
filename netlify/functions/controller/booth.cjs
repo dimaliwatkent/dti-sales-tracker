@@ -6,7 +6,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .cjson({ message: "An error occurred", err: err.message });
+    .json({ message: "An error occurred", err: err.message });
 };
 
 const updateBooth = async (req, res) => {
@@ -15,12 +15,12 @@ const updateBooth = async (req, res) => {
     const boothList = req.body;
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).cjson({ message: "Invalid event ID" });
+      return res.status(400).json({ message: "Invalid event ID" });
     }
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).cjson({ message: "Event not found" });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     const businessIds = event.businessList;
@@ -56,7 +56,7 @@ const updateBooth = async (req, res) => {
     event.boothList = updatedBoothList;
     await event.save();
 
-    return res.status(200).cjson({ message: "Booth List Updated" });
+    return res.status(200).json({ message: "Booth List Updated" });
   } catch (err) {
     handleError(res, err);
   }

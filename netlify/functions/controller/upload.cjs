@@ -27,7 +27,7 @@ const s3 = new S3Client({
 const handleError = (res, err) => {
   return res
     .status(500)
-    .cjson({ message: "An error occurred", err: err.message });
+    .json({ message: "An error occurred", err: err.message });
 };
 
 // upload profile picture
@@ -39,7 +39,7 @@ const uploadProfile = async (req, res) => {
     const user = await User.findById(uploaderId).exec();
 
     if (!user) {
-      return res.status(404).cjson({ message: "No user found" });
+      return res.status(404).json({ message: "No user found" });
     }
 
     // Decode the base64 string
@@ -62,7 +62,7 @@ const uploadProfile = async (req, res) => {
 
     return res
       .status(201)
-      .cjson({ message: "Profile picture added successfully", user: user });
+      .json({ message: "Profile picture added successfully", user: user });
   } catch (err) {
     handleError(res, err);
   }
@@ -77,7 +77,7 @@ const deleteProfile = async (req, res) => {
     const user = await User.findById(userId).exec();
 
     if (!user) {
-      return res.status(404).cjson({ message: "No user found" });
+      return res.status(404).json({ message: "No user found" });
     }
 
     const params = {
@@ -93,7 +93,7 @@ const deleteProfile = async (req, res) => {
 
     return res
       .status(201)
-      .cjson({ message: "Profile picture removed successfully" });
+      .json({ message: "Profile picture removed successfully" });
   } catch (err) {
     handleError(res, err);
   }

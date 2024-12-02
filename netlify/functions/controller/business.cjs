@@ -31,7 +31,7 @@ const s3 = new S3Client({
 const handleError = (res, err) => {
   return res
     .status(500)
-    .cjson({ message: "An error occurred", err: err.message });
+    .json({ message: "An error occurred", err: err.message });
 };
 
 // get business by id
@@ -40,18 +40,18 @@ const getBusiness = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid business ID" });
+      return res.status(400).json({ message: "Invalid business ID" });
     }
 
     const business = await Business.findById(id);
 
     if (!business) {
-      return res.status(404).cjson({ message: "No business found" });
+      return res.status(404).json({ message: "No business found" });
     }
 
     return res
       .status(200)
-      .cjson({ message: "Business retrieved successfully", business });
+      .json({ message: "Business retrieved successfully", business });
   } catch (err) {
     handleError(res, err);
   }
@@ -66,12 +66,12 @@ const getBusinessList = async (req, res) => {
       .exec();
 
     if (!business || !business.length) {
-      return res.status(404).cjson({ message: "No business found" });
+      return res.status(404).json({ message: "No business found" });
     }
 
     return res
       .status(200)
-      .cjson({ message: "Business list retrieved successfully", business });
+      .json({ message: "Business list retrieved successfully", business });
   } catch (err) {
     handleError(res, err);
   }
@@ -95,26 +95,26 @@ const addBusiness = async (req, res) => {
     } = req.body;
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).cjson({ message: "Invalid user ID" });
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).cjson({ message: "Invalid event ID" });
+      return res.status(400).json({ message: "Invalid event ID" });
     }
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).cjson({ message: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
     if (user.role !== "user") {
       return res
         .status(404)
-        .cjson({ message: "Must be a user to add business" });
+        .json({ message: "Must be a user to add business" });
     }
 
     const event = await Event.findById(eventId);
     if (!event) {
-      return res.status(404).cjson({ message: "Event not found" });
+      return res.status(404).json({ message: "Event not found" });
     }
 
     const newBusiness = new Business({
@@ -181,7 +181,7 @@ const addBusiness = async (req, res) => {
       await event.save();
     }
 
-    return res.status(201).cjson({
+    return res.status(201).json({
       message: "Business created successfully",
       business: newBusiness,
     });
@@ -196,12 +196,12 @@ const editBusiness = async (req, res) => {
     const businessData = req.body;
 
     if (!mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid business ID" });
+      return res.status(400).json({ message: "Invalid business ID" });
     }
 
     const business = await Business.findById(id);
     if (!business) {
-      return res.status(404).cjson({ message: "Business not found" });
+      return res.status(404).json({ message: "Business not found" });
     }
 
     const updatedBusiness = { ...business.toObject(), ...businessData };
@@ -212,10 +212,10 @@ const editBusiness = async (req, res) => {
       { new: true },
     );
     if (result.nModified === 0) {
-      return res.status(500).cjson({ message: "Failed to update business" });
+      return res.status(500).json({ message: "Failed to update business" });
     }
 
-    return res.status(200).cjson({
+    return res.status(200).json({
       message: "Business updated successfully",
       business: updatedBusiness,
     });
@@ -231,22 +231,22 @@ const editBusiness = async (req, res) => {
 //     const { isAdmin, userId } = req.body;
 //
 //     if (!id || !mongoose.isValidObjectId(id)) {
-//       return res.status(400).cjson({ message: "Invalid business ID" });
+//       return res.status(400).json({ message: "Invalid business ID" });
 //     }
 //
 //     if (!userId || !mongoose.isValidObjectId(userId)) {
-//       return res.status(400).cjson({ message: "Invalid user ID" });
+//       return res.status(400).json({ message: "Invalid user ID" });
 //     }
 //
 //     const business = await Business.findById(id);
 //     if (!business) {
-//       return res.status(404).cjson({ message: "Business not found" });
+//       return res.status(404).json({ message: "Business not found" });
 //     }
 //
 //     if (business.applicationStatus === "approved" && !isAdmin) {
 //       return res
 //         .status(403)
-//         .cjson({ message: "Only admins can edit approved businesses" });
+//         .json({ message: "Only admins can edit approved businesses" });
 //     }
 //
 //     const updatedBusinessData = {
@@ -260,7 +260,7 @@ const editBusiness = async (req, res) => {
 //
 //     res
 //       .status(200)
-//       .cjson({ message: "Business updated successfully", business });
+//       .json({ message: "Business updated successfully", business });
 //   } catch (err) {
 //     handleError(res, err);
 //   }
@@ -273,19 +273,19 @@ const applicationStatus = async (req, res) => {
     const { applicationStatus, statusMessage } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid business ID" });
+      return res.status(400).json({ message: "Invalid business ID" });
     }
 
     const existingBusiness = await Business.findById(id);
 
     if (!existingBusiness) {
-      return res.status(404).cjson({ message: "No business found" });
+      return res.status(404).json({ message: "No business found" });
     }
 
     const eventId = existingBusiness.event;
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).cjson({ message: "Invalid event ID" });
+      return res.status(400).json({ message: "Invalid event ID" });
     }
 
     const event = await Event.findById(eventId);
@@ -321,7 +321,7 @@ const applicationStatus = async (req, res) => {
       })
       .exec();
 
-    return res.status(200).cjson({
+    return res.status(200).json({
       message: "Business application status updated successfully",
       business: existingBusiness,
       event: newEvent,
@@ -338,13 +338,13 @@ const archiveBusiness = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid business ID" });
+      return res.status(400).json({ message: "Invalid business ID" });
     }
 
     const existingBusiness = await Business.findById(id);
 
     if (!existingBusiness) {
-      return res.status(404).cjson({ message: "No business found" });
+      return res.status(404).json({ message: "No business found" });
     }
 
     existingBusiness.isArchived = isArchived;
@@ -352,7 +352,7 @@ const archiveBusiness = async (req, res) => {
 
     const action = isArchived ? "archived" : "unarchived";
 
-    return res.status(200).cjson({
+    return res.status(200).json({
       message: `Business ${action} successfully`,
       business: existingBusiness,
     });

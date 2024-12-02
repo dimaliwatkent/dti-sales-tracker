@@ -5,7 +5,7 @@ const mongoose = require("mongoose");
 const handleError = (res, err) => {
   return res
     .status(500)
-    .cjson({ message: "An error occurred", err: err.message });
+    .json({ message: "An error occurred", err: err.message });
 };
 
 // Get all awards
@@ -14,11 +14,11 @@ const getAwardList = async (req, res) => {
     const isArchived = req.query.isArchived === "true";
     const award = await Award.find({ isArchived });
     if (!award.length) {
-      return res.status(404).cjson({ message: "No award found" });
+      return res.status(404).json({ message: "No award found" });
     }
     return res
       .status(200)
-      .cjson({ message: "Awards retrieved successfully", award });
+      .json({ message: "Awards retrieved successfully", award });
   } catch (err) {
     handleError(res, err);
   }
@@ -30,18 +30,18 @@ const getAward = async (req, res) => {
     const { id } = req.params;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid award ID" });
+      return res.status(400).json({ message: "Invalid award ID" });
     }
 
     const award = await Award.findById(id);
 
     if (!award) {
-      return res.status(404).cjson({ message: "No award found" });
+      return res.status(404).json({ message: "No award found" });
     }
 
     return res
       .status(200)
-      .cjson({ message: "Award retrieved successfully", award });
+      .json({ message: "Award retrieved successfully", award });
   } catch (err) {
     handleError(res, err);
   }
@@ -53,7 +53,7 @@ const createAward = async (req, res) => {
     const { name, description, prize } = req.body;
 
     if (!name || !description || !prize) {
-      return res.status(400).cjson({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const existingAward = await Award.findOne({ name });
@@ -61,7 +61,7 @@ const createAward = async (req, res) => {
     if (existingAward) {
       return res
         .status(409)
-        .cjson({ message: "Award with this name already exists" });
+        .json({ message: "Award with this name already exists" });
     }
 
     const newAward = new Award({
@@ -74,7 +74,7 @@ const createAward = async (req, res) => {
 
     return res
       .status(201)
-      .cjson({ message: "Award created successfully", award: newAward });
+      .json({ message: "Award created successfully", award: newAward });
   } catch (err) {
     handleError(res, err);
   }
@@ -86,13 +86,13 @@ const updateAward = async (req, res) => {
     const { name, description, prize } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid award ID" });
+      return res.status(400).json({ message: "Invalid award ID" });
     }
 
     const existingAward = await Award.findById(id);
 
     if (!existingAward) {
-      return res.status(404).cjson({ message: "No award found" });
+      return res.status(404).json({ message: "No award found" });
     }
 
     existingAward.name = name;
@@ -102,7 +102,7 @@ const updateAward = async (req, res) => {
 
     return res
       .status(200)
-      .cjson({ message: "Award updated successfully", award: existingAward });
+      .json({ message: "Award updated successfully", award: existingAward });
   } catch (err) {
     handleError(res, err);
   }
@@ -115,13 +115,13 @@ const archiveAward = async (req, res) => {
     const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid award ID" });
+      return res.status(400).json({ message: "Invalid award ID" });
     }
 
     const award = await Award.findById(id);
 
     if (!award) {
-      return res.status(404).cjson({ message: "No award found" });
+      return res.status(404).json({ message: "No award found" });
     }
 
     award.isArchived = isArchived;
@@ -130,7 +130,7 @@ const archiveAward = async (req, res) => {
 
     return res
       .status(200)
-      .cjson({ message: `Award ${action} successfully`, award });
+      .json({ message: `Award ${action} successfully`, award });
   } catch (err) {
     handleError(res, err);
   }

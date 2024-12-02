@@ -11,7 +11,7 @@ const {
 const handleError = (res, err) => {
   return res
     .status(500)
-    .cjson({ message: "Internal server error", err: err.message });
+    .json({ message: "Internal server error", err: err.message });
 };
 
 // get user info
@@ -37,17 +37,17 @@ const signUp = async (req, res, next) => {
     const { name, email, password, phoneNumber } = req.body;
 
     if (!name || !email || !password) {
-      return res.status(400).cjson({ message: "All fields are required" });
+      return res.status(400).json({ message: "All fields are required" });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(422).cjson({ message: "Email already exists" });
+      return res.status(422).json({ message: "Email already exists" });
     }
 
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*.])(?=.{8,})/;
     if (!passwordRegex.test(password)) {
-      return res.status(400).cjson({
+      return res.status(400).json({
         message:
           "Password must be at least 8 characters long, contain at least one number, and one special character.",
       });
@@ -86,7 +86,7 @@ const signUp = async (req, res, next) => {
       sameSite: "none",
     });
 
-    return res.status(201).cjson({
+    return res.status(201).json({
       message: "Sign up successful",
       user: getUserInfo(newUser),
       accessToken,
@@ -102,7 +102,7 @@ const signIn = async (req, res) => {
     const { email, password } = req.body;
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
-      return res.status(422).cjson({ message: "Invalid email or password" });
+      return res.status(422).json({ message: "Invalid email or password" });
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -110,7 +110,7 @@ const signIn = async (req, res) => {
       existingUser.password,
     );
     if (!isPasswordValid) {
-      return res.status(401).cjson({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
 
     const accessToken = await generateAccessToken({ id: existingUser._id });
@@ -134,7 +134,7 @@ const signIn = async (req, res) => {
       sameSite: "none",
     });
 
-    return res.status(200).cjson({
+    return res.status(200).json({
       message: "Sign in successful",
       user: getUserInfo(existingUser),
       accessToken,
@@ -151,14 +151,14 @@ const loginWithRefreshToken = async (req, res) => {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(401).cjson({ message: "Refresh token required" });
+      return res.status(401).json({ message: "Refresh token required" });
     }
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_SECRET);
 
     const user = await User.findById(decoded.id);
     if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).cjson({ message: "Invalid refresh token" });
+      return res.status(403).json({ message: "Invalid refresh token" });
     }
 
     const accessToken = await generateAccessToken({ user: user._id });
@@ -171,7 +171,7 @@ const loginWithRefreshToken = async (req, res) => {
 
     return res
       .status(200)
-      .cjson({ message: "Logged in successful", accessToken });
+      .json({ message: "Logged in successful", accessToken });
   } catch (err) {
     handleError(res, err);
   }
@@ -183,7 +183,7 @@ const signOut = async (req, res) => {
     const { id } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).cjson({ message: "Invalid user ID" });
+      return res.status(400).json({ message: "Invalid user ID" });
     }
 
     res.clearCookie("accessToken", {
@@ -203,10 +203,10 @@ const signOut = async (req, res) => {
       user.refreshToken = null;
       await user.save();
     } else {
-      return res.status(403).cjson({ message: "Forbidden" });
+      return res.status(403).json({ message: "Forbidden" });
     }
 
-    return res.status(200).cjson({ message: "Signed out successfully" });
+    return res.status(200).json({ message: "Signed out successfully" });
   } catch (err) {
     handleError(res, err);
   }
