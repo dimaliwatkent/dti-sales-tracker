@@ -266,6 +266,8 @@ const signOut = async (req, res) => {
 async function sendEmail(to, subject, htmlContent) {
   try {
     const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
       service: "gmail",
       auth: {
         user: process.env.EMAIL,
