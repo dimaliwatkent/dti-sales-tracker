@@ -20,6 +20,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Label } from "@radix-ui/react-label";
+import FileField from "../user/events/form-fields/FileField";
 
 import { useSignupMutation } from "@/api/auth/authApiSlice";
 import { useDispatch } from "react-redux";
@@ -33,6 +34,7 @@ import { clearSaleList } from "@/api/sale/saleSlice";
 import { clearUserList } from "@/api/user/userSlice";
 
 import { signUpSchema } from "@/zod/authSchema";
+import { clearNotication } from "@/api/notification/notificationSlice";
 
 const SignUp = () => {
   const { toast } = useToast();
@@ -49,6 +51,7 @@ const SignUp = () => {
       confirmPassword: "",
       phoneNumber: "",
       role: "newUser",
+      businessName: "",
     },
   });
 
@@ -97,6 +100,7 @@ const SignUp = () => {
     dispatch(clearEventList());
     dispatch(clearSaleList());
     dispatch(clearUserList());
+    dispatch(clearNotication());
   }, [dispatch]);
 
   return (
@@ -158,6 +162,27 @@ const SignUp = () => {
                   <FormMessage />
                 </FormItem>
               )}
+            />
+
+            <FormField
+              control={form.control}
+              name="businessName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Business Name</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Sweet Treats" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FileField
+              name="document"
+              label="DTI Certificate"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
             />
 
             <FormField

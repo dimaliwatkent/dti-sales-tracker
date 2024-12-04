@@ -22,6 +22,13 @@ import {
 import { selectUser, selectUserList } from "@/api/user/userSlice";
 import { selectRecordList } from "@/api/sale/saleSlice";
 import { Record } from "@/types/RecordType";
+import { Notification } from "@/types/NotificationType";
+import {
+  selectNotification,
+  selectNotificationList,
+} from "@/api/notification/notificationSlice";
+import { CustomProduct } from "@/types/CustomProduct";
+import { selectProductList } from "@/api/product/productSlice";
 
 const useBusinessListData = () => {
   const businessList: Business[] = useSelector(selectBusinessList);
@@ -78,6 +85,21 @@ const useMonitorEventListData = () => {
   return event;
 };
 
+const useNotificationListData = () => {
+  const notificationList: Notification[] = useSelector(selectNotificationList);
+  return notificationList;
+};
+
+const useNotificationData = () => {
+  const notification: Notification = useSelector(selectNotification);
+  return notification;
+};
+
+const useProductListData = () => {
+  const product: CustomProduct[] = useSelector(selectProductList);
+  return product;
+};
+
 export {
   useBusinessListData,
   useBusinessData,
@@ -90,4 +112,7 @@ export {
   useUserEventListData,
   useRecordListData,
   useMonitorEventListData,
+  useNotificationListData,
+  useNotificationData,
+  useProductListData,
 };

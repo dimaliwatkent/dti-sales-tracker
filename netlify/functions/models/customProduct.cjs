@@ -12,20 +12,17 @@ const CustomProductSchema = new mongoose.Schema(
         message: "Invalid business ObjectId",
       },
     },
+    event: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "event",
+    },
+
     name: {
       type: String,
       trim: true,
       minlength: [3, "Name must be at least 3 characters"],
       maxlength: [50, "Name cannot exceed 50 characters"],
     },
-    categoryList: [
-      {
-        type: String,
-        trim: true,
-        minlength: [3, "Category must be at least 3 characters"],
-        maxlength: [50, "Category cannot exceed 50 characters"],
-      },
-    ],
     price: {
       type: mongoose.Schema.Types.Decimal128,
       validate: {

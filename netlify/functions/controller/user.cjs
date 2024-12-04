@@ -1,6 +1,10 @@
 const User = require("../models/user.cjs");
 const bcrypt = require("bcryptjs");
 const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 // handle error
 const handleError = (res, err) => {
@@ -104,6 +108,21 @@ const changeRole = async (req, res) => {
     }
 
     existingUser.role = role;
+
+    if (role === "rejected") {
+      await sendEmail(
+        existingUser.email,
+        "Registration Rejected",
+        `<h1>Hello ${existingUser.name},</h1><p>We regret to inform you that your registration has been rejected.</p>`,
+      );
+    } else {
+      await sendEmail(
+        existingUser.email,
+        "Role Updated",
+        `<h1>Hello ${existingUser.name},</h1><p>Your role has been updated to ${role}</p>`,
+      );
+    }
+
     await existingUser.save();
 
     return res.status(200).json({
@@ -143,6 +162,33 @@ const archiveUser = async (req, res) => {
     handleError(res, err);
   }
 };
+
+async function sendEmail(to, subject, htmlContent) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Expo Management System" <${process.env.EMAIL}>`,
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log("Email sent:", info.response);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error.message);
+    throw new Error("Email failed to send");
+  }
+}
 
 module.exports = {
   getUserList,

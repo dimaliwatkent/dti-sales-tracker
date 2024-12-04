@@ -19,7 +19,7 @@ const NotificationSchema = new mongoose.Schema(
       enum: ["low", "medium", "high", "critical"],
       default: "low",
     },
-    read: Boolean,
+    read: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

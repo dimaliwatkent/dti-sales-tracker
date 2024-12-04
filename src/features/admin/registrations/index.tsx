@@ -91,7 +91,13 @@ const AdminRegistrations = () => {
             <TableHead>User Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Phone Number</TableHead>
-            <TableHead>Accept/Reject</TableHead>
+            <TableHead>Business Name</TableHead>
+            <TableHead>Document</TableHead>
+            {selectedRole === "newUser" && (
+              <div>
+                <TableHead>Accept/Reject</TableHead>
+              </div>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -106,42 +112,60 @@ const AdminRegistrations = () => {
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>0{user.phoneNumber}</TableCell>
+                <TableCell>{user.businessName}</TableCell>
                 <TableCell>
-                  <div>
-                    <Select
-                      value={user.role}
-                      onValueChange={async (value) => {
-                        const result = await changeRole({
-                          id: user._id,
-                          role: value,
-                        }).unwrap();
-
-                        toast({
-                          variant: "default",
-                          title: "Success",
-                          description: result.message,
-                        });
-                        refetchUserList();
-                      }}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Change Role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectLabel>Accept or Reject</SelectLabel>
-                          <SelectItem value="newUser">Pending</SelectItem>
-                          <SelectItem value="user">Accept as User</SelectItem>
-                          <SelectItem value="monitor">
-                            Accept as Monitor
-                          </SelectItem>
-                          <SelectItem value="admin">Accept as Admin</SelectItem>
-                          <SelectItem value="rejected">Reject</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  {
+                    <div className="text-left bg-primary h-8 w-32 flex items-center justify-center rounded-lg">
+                      <a
+                        href={user.document}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <p className="text-background">View File</p>
+                      </a>
+                    </div>
+                  }
                 </TableCell>
+                {selectedRole === "newUser" && (
+                  <TableCell>
+                    <div>
+                      <Select
+                        value={user.role}
+                        onValueChange={async (value) => {
+                          const result = await changeRole({
+                            id: user._id,
+                            role: value,
+                          }).unwrap();
+
+                          toast({
+                            variant: "default",
+                            title: "Success",
+                            description: result.message,
+                          });
+                          refetchUserList();
+                        }}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Change Role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectGroup>
+                            <SelectLabel>Accept or Reject</SelectLabel>
+                            <SelectItem value="newUser">Pending</SelectItem>
+                            <SelectItem value="user">Accept as User</SelectItem>
+                            <SelectItem value="monitor">
+                              Accept as Monitor
+                            </SelectItem>
+                            <SelectItem value="admin">
+                              Accept as Admin
+                            </SelectItem>
+                            <SelectItem value="rejected">Reject</SelectItem>
+                          </SelectGroup>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableCell>
+                )}
                 <TableCell></TableCell>
               </TableRow>
             ))

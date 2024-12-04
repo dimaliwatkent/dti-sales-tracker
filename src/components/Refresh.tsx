@@ -1,12 +1,14 @@
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "./ui/button";
+import { RefreshCcw } from "lucide-react";
 
 type RefreshProps = {
   refetch: () => void;
   className?: string;
+  icon?: boolean;
 };
 
-const Refresh = ({ refetch, className }: RefreshProps) => {
+const Refresh = ({ refetch, className, icon = false }: RefreshProps) => {
   const { toast } = useToast();
 
   const handleRefetch = () => {
@@ -25,9 +27,17 @@ const Refresh = ({ refetch, className }: RefreshProps) => {
   };
 
   return (
-    <Button onClick={handleRefetch} className={className}>
-      Refresh
-    </Button>
+    <div>
+      {icon ? (
+        <Button variant="outline" onClick={handleRefetch} className={className}>
+          <RefreshCcw size={20} />
+        </Button>
+      ) : (
+        <Button onClick={handleRefetch} className={className}>
+          Refresh
+        </Button>
+      )}
+    </div>
   );
 };
 

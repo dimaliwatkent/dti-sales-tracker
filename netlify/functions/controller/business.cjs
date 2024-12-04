@@ -2,15 +2,12 @@ const Business = require("../models/business.cjs");
 const User = require("../models/user.cjs");
 const Event = require("../models/event.cjs");
 const mongoose = require("mongoose");
+const nodemailer = require("nodemailer");
 
 // aws s3
 const dotenv = require("dotenv");
 
-const {
-  S3Client,
-  PutObjectCommand,
-  DeleteObjectCommand,
-} = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 
 dotenv.config();
 
@@ -296,6 +293,17 @@ const applicationStatus = async (req, res) => {
         (applicantId) => applicantId.toString() !== id,
       );
       event.businessList.push(id);
+      await sendEmail(
+        existingBusiness.user.email,
+        "Business Application Approved",
+        `<p>Your business application for ${event.title} has been approved. Congratulations!</p>`,
+      );
+    } else {
+      await sendEmail(
+        existingBusiness.user.email,
+        "Business Application Rejected",
+        `<p>Your business application for ${event.title} has been rejected. Please contact the event organizer for more details.</p>`,
+      );
     }
 
     existingBusiness.statusMessage = statusMessage;
@@ -360,6 +368,33 @@ const archiveBusiness = async (req, res) => {
     handleError(res, err);
   }
 };
+
+async function sendEmail(to, subject, htmlContent) {
+  try {
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASSWORD,
+      },
+    });
+
+    const mailOptions = {
+      from: `"Expo Management System" <${process.env.EMAIL}>`,
+      to: to,
+      subject: subject,
+      html: htmlContent,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+
+    console.log("Email sent:", info.response);
+    return info;
+  } catch (error) {
+    console.error("Error sending email:", error.message);
+    throw new Error("Email failed to send");
+  }
+}
 
 module.exports = {
   getBusiness,

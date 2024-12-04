@@ -37,6 +37,7 @@ const ProfileRemove = ({ user }: ProfileUploadProps) => {
         });
 
         refetchUserData();
+        setOpen(false)
       }
     } catch (error: unknown) {
       if (error) {

@@ -3,6 +3,8 @@ const BusinessViolation = require("../models/businessViolation.cjs");
 const Violation = require("../models/violation.cjs");
 const mongoose = require("mongoose");
 
+const { addNotification } = require("../controller/notification.cjs");
+
 // handle error
 const handleError = (res, err) => {
   return res
@@ -10,22 +12,27 @@ const handleError = (res, err) => {
     .json({ message: "An error occurred", err: err.message });
 };
 
+function getViolationMessage(violation) {
+  if (violation.count === 1) {
+    return "First Warning";
+  } else if (violation.count === 2) {
+    return "Second Warning";
+  } else {
+    return `Penalty P${violation.violation.fee * (violation.count - 2)}.00`;
+  }
+}
+
 // API endpoint to add a violation to a business xxx
 const addBusinessViolation = async (req, res) => {
   try {
-    // Get the business ID from the URL parameter
     const businessId = req.params.businessId;
-
-    // Get the violation from the request body
     const violation = req.body;
 
-    // Check if the business exists
     const business = await Business.findById(businessId);
     if (!business) {
       return res.status(404).json({ message: "Business not found" });
     }
 
-    // Check if the violation already exists in the business
     const existingViolation = await BusinessViolation.findOne({
       business: businessId,
       "violation.name": violation.name,
@@ -40,19 +47,28 @@ const addBusinessViolation = async (req, res) => {
           fee: violation.fee,
           description: violation.description,
         },
-        monitor: violation.monitor, // Assuming the monitor is the current user
+        monitor: violation.monitor,
         count: 1,
       });
 
-      // Save the new business violation document
       await newViolation.save();
 
       // Add the new business violation to the business's violation list
       business.violationList.push(newViolation._id);
       await business.save();
 
-      const newBusiness =
-        await Business.findById(businessId).populate("violationList");
+      const newBusiness = await Business.findById(businessId)
+        .populate("violationList")
+        .populate("event");
+
+      const violationNotification = {
+        userId: newBusiness.user,
+        title: `Violation: ${newViolation.violation.name} for ${newBusiness.event.title}`,
+        message: getViolationMessage(newViolation),
+        type: "alert",
+        severity: "low",
+      };
+      await addNotification(violationNotification);
 
       // Return a success response
       res.json({
@@ -67,15 +83,23 @@ const addBusinessViolation = async (req, res) => {
       const newBusiness =
         await Business.findById(businessId).populate("violationList");
 
+      const violationNotification = {
+        userId: business.user,
+        title: `Violation: ${existingViolation.violation.name} for ${newBusiness.event.title}`,
+        message: getViolationMessage(existingViolation),
+        type: "alert",
+        severity: "low",
+      };
+      await addNotification(violationNotification);
+
       // Return a success response
       res.json({
         message: "Violation count incremented successfully",
         business: newBusiness,
       });
     }
-  } catch (error) {
-    // Return an error response
-    res.status(500).json({ message: "Error adding violation" });
+  } catch (err) {
+    handleError(res, err);
   }
 };
 

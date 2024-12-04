@@ -37,6 +37,8 @@ import useDataLoader from "@/hooks/useDataLoader";
 import ReviewForm from "./ReviewForm";
 import SpinnerText from "@/components/SpinnerWithText";
 
+import AddressForm from "./form-fields/AddressForm";
+
 const ApplicationForm = () => {
   const event = useSelector(selectEvent);
   const { refetchUserData, refetchUserEventList } = useDataLoader();
@@ -143,25 +145,31 @@ const ApplicationForm = () => {
               form={form}
             />
 
+            <div>
+              <div className="mb-2">
+                <FormLabel>Address</FormLabel>
+              </div>
+              <AddressForm form={form} />
+            </div>
+
+            {/*
             <TextInputField
               name="address"
               label="Address"
               type="text"
-              placeholder="Tanza, Boac, Marinduque"
+              placeholder=""
               description="Barangay, Municipality, Province"
               form={form}
             />
 
-            <SelectField
+            <TextInputField
               name="region"
               label="Region"
-              options={[
-                { value: "4A-MIMAROPA", label: "4A-MIMAROPA" },
-                { value: "4B-CALABARZON", label: "4B-CALABARZON" },
-              ]}
-              placeholder="Select a Region"
+              type="text"
+              placeholder=""
               form={form}
             />
+            */}
 
             <TextInputField
               name="zip"
@@ -320,7 +328,7 @@ const ApplicationForm = () => {
               label="Business Profile"
               options={[
                 { value: "Sole Proprietorship", label: "Sole Proprietorship" },
-                { value: "Partnership", label: "Female" },
+                { value: "Partnership", label: "Partnership" },
                 { value: "Corporation", label: "Corporation" },
                 { value: "NGO/Cooperative", label: "NGO/Cooperative" },
               ]}

@@ -5,6 +5,7 @@ import {
   ClipboardIcon,
   CalendarIcon,
   AvatarIcon,
+  BellIcon,
 } from "@radix-ui/react-icons";
 import { SidebarItem } from "@/types/OtherTypes";
 
@@ -28,6 +29,16 @@ const adminSidebarItems: SidebarItem[] = [
     text: "Registrations",
     icon: ClipboardIcon,
     path: "/admin/registrations",
+  },
+  {
+    text: "Notifications",
+    icon: BellIcon,
+    path: "/admin/notification",
+  },
+  {
+    text: "Profile",
+    icon: AvatarIcon,
+    path: "/admin/profile",
   },
 ];
 
@@ -53,14 +64,19 @@ const sidebarItems: SidebarItem[] = [
     path: "/events",
   },
   {
-    text: "Profile",
-    icon: AvatarIcon,
-    path: "/profile",
-  },
-  {
     text: "Registration",
     icon: CalendarIcon,
     path: "/registration",
+  },
+  {
+    text: "Notifications",
+    icon: BellIcon,
+    path: "/notification",
+  },
+  {
+    text: "Profile",
+    icon: AvatarIcon,
+    path: "/profile",
   },
 ];
 
@@ -79,6 +95,16 @@ const monitorSidebarItems: SidebarItem[] = [
     text: "Registration",
     icon: CalendarIcon,
     path: "/registration",
+  },
+  {
+    text: "Notifications",
+    icon: BellIcon,
+    path: "/monitor/notification",
+  },
+  {
+    text: "Profile",
+    icon: AvatarIcon,
+    path: "/monitor/profile",
   },
 ];
 
@@ -114,6 +140,7 @@ const intervalTime = {
   adminViewEvent: 60, // seconds
   userEvent: 60, // seconds
   accountRegistration: 60, // seconds
+  notification: 600, // seconds
 };
 
 const violationList = [

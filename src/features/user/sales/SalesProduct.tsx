@@ -1,5 +1,4 @@
 import { useEffect, useMemo } from "react";
-import { useGetUserProductQuery } from "@/api/product/productApiSlice";
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 
@@ -9,16 +8,19 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { formatCurrency } from "@/utils/formatCurrency";
+import { useProductListData } from "@/hooks/dataHooks";
+import { CustomProduct } from "@/types/CustomProduct";
+import useDataLoader from "@/hooks/useDataLoader";
 
 interface SalesProductProps {
-  userId: string;
+  activeEventId: string;
   isLoading: boolean;
   setTransaction: (transaction: Transaction) => void;
   handleUpdateSale: () => void;
 }
 
 const SalesProduct = ({
-  userId,
+  activeEventId,
   isLoading,
   setTransaction,
   handleUpdateSale,
@@ -29,17 +31,24 @@ const SalesProduct = ({
     [currentProducts],
   );
 
-  const { data } = useGetUserProductQuery(userId);
-  const customProductList = data?.customProduct ?? [];
+  const {isLoading: rerenderTracker} = useDataLoader()
+
+  const customProductList = useProductListData();
 
   const [searchTerm, setSearchTerm] = useState("");
   const [totalPrice, setTotalPrice] = useState("");
+  const [filteredProducts, setFilteredProducts] = useState(customProductList);
 
-  const filteredProducts = customProductList.filter((product: ProductType) =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  useEffect(() => {
+    const filtered = customProductList.filter(
+      (product: CustomProduct) =>
+        product.event === activeEventId &&
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    );
+    setFilteredProducts(filtered);
+  }, [activeEventId, customProductList, searchTerm, rerenderTracker]);
 
-  const handleAddProduct = (product: ProductType) => {
+  const handleAddProduct = (product: CustomProduct) => {
     const existingProductIndex = currentProducts.findIndex(
       (existingProduct) => existingProduct.name === product.name,
     );
@@ -164,20 +173,22 @@ const SalesProduct = ({
               {!filteredProducts || filteredProducts.length === 0 ? (
                 <div>No custom products</div>
               ) : (
-                filteredProducts.map((product: ProductType, index: number) => (
-                  <div
-                    key={index}
-                    className="flex justify-between cursor-pointer border p-3 rounded-lg bg-secondary active:scale-95"
-                    onClick={() => handleAddProduct(product)}
-                  >
-                    <div className="flex gap-3 items-center">
-                      <Plus size={16} />
-                      <p>{product.name}</p>
-                    </div>
+                filteredProducts.map(
+                  (product: CustomProduct, index: number) => (
+                    <div
+                      key={index}
+                      className="flex justify-between cursor-pointer border p-3 rounded-lg bg-secondary active:scale-95"
+                      onClick={() => handleAddProduct(product)}
+                    >
+                      <div className="flex gap-3 items-center">
+                        <Plus size={16} />
+                        <p>{product.name}</p>
+                      </div>
 
-                    <p>{formatCurrency(product.price.$numberDecimal)}</p>
-                  </div>
-                ))
+                      <p>{formatCurrency(product.price.$numberDecimal)}</p>
+                    </div>
+                  ),
+                )
               )}
             </div>
           </ScrollArea>

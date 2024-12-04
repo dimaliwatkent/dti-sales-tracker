@@ -10,6 +10,8 @@ export interface User {
   phoneNumber: number;
   role: string;
   picture: string;
+  businessName: string;
+  document: string;
   refreshToken?: string;
   isArchived: boolean;
   createdAt: Date;
@@ -28,12 +30,11 @@ export interface UserBusiness {
   email: string;
   phoneNumber: number;
   role: string;
+  picture: string;
+  businessName: string;
+  document: string;
   refreshToken?: string;
   isArchived: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
-
-// Create and update types can be defined using utility types
-export type CreateUser = Omit<User, "business" | "refreshToken" | "isArchived">;
-export type UpdateUser = Partial<User>;

@@ -2,8 +2,6 @@ import { useState } from "react";
 import { selectEvent } from "@/api/event/eventSlice";
 import { useSelector } from "react-redux";
 
-import { X } from "lucide-react";
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,22 +18,19 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+
+// form fields
+import FileField from "./form-fields/FileField";
+import TextInputField from "./form-fields/TextInputField";
+import SelectField from "./form-fields/SelectField";
+import MultiSelectField from "./form-fields/MultiSelectField";
 
 import { useEditBusinessMutation } from "@/api/business/businessApiSlice";
 
 import { editApplicationSchema } from "@/zod/applicationSchema";
 import useDataLoader from "@/hooks/useDataLoader";
-import { MultiSelect } from "./MultiSelect";
 import ReviewForm from "./ReviewForm";
 
 import { selectActiveBusiness } from "@/api/business/businessSlice";
@@ -132,341 +127,151 @@ const EditApplicationForm = () => {
       <div>
         <Form {...form}>
           <form className="space-y-4 pb-32">
-            <FormField
-              control={form.control}
+            <TextInputField
               name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sweet Treats" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Business Name"
+              type="text"
+              placeholder="Sweet Treats"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Address</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Tanza, Boac, Marinduque" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Barangay, Municipality, Province
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Address"
+              type="text"
+              placeholder="Tanza, Boac, Marinduque"
+              description="Barangay, Municipality, Province"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <SelectField
               name="region"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Region</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a region" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="4A-MIMAROPA">4A-MIMAROPA</SelectItem>
-                      <SelectItem value="4B-CALABARZON">
-                        4B-CALABARZON
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Region"
+              options={[
+                { value: "4A-MIMAROPA", label: "4A-MIMAROPA" },
+                { value: "4B-CALABARZON", label: "4B-CALABARZON" },
+              ]}
+              placeholder="Select a Region"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="zip"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Zip Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="4900" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Zip Code"
+              type="number"
+              placeholder="4900"
+              form={form}
             />
-            <FormField
-              control={form.control}
+            <TextInputField
               name="facebookPage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Facebook Page</FormLabel>
-                  <FormControl>
-                    <Input placeholder="www.facebook.com/..." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Facebook Page"
+              type="text"
+              placeholder="www.facebook.com/..."
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="ecommerceSite"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ecommerce Site</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://www.lazada.com.ph/shop/sweet-treats"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>Shopee or Lazada Link</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Ecommerce Site"
+              type="text"
+              placeholder="https://www.lazada.com.ph/shop/sweet-treats"
+              description="Shopee or Lazada Link"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="website"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Website</FormLabel>
-                  <FormControl>
-                    <Input placeholder="sweet-treats.com" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Website"
+              type="text"
+              placeholder="sweet-treats.com"
+              form={form}
             />
 
-            <FormField
-              control={form.control}
+            <TextInputField
               name="contactPersonName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person's Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Juan Dela Cruz" {...field} />
-                  </FormControl>
-                  <FormDescription>FirstName LastName</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Contact Person's Name"
+              type="text"
+              placeholder="Juan Dela Cruz"
+              description="FirstName LastName"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="contactPersonNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person's Phone Number</FormLabel>
-                  <FormControl>
-                    <Input placeholder="9876543212" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Contact Person's Number"
+              type="text"
+              placeholder="9876543212"
+              description="Must start with 9"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="contactPersonDesignation"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person's Designation</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Sales Manager" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Contact Person's Designation"
+              type="text"
+              placeholder="Sales Manager"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <SelectField
               name="contactPersonSex"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Contact Person's Sex</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a sex" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Contact Person's Sex"
+              options={[
+                { value: "male", label: "Male" },
+                { value: "female", label: "Female" },
+              ]}
+              placeholder="Select a Sex"
+              form={form}
             />
-
-            <FormField
-              control={form.control}
+            <MultiSelectField
               name="paymentOption"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Payment Option</FormLabel>
-
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.length > 0
-                      ? field.value.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
-                            onClick={() => {
-                              field.onChange(
-                                field.value.filter((i) => i !== item),
-                              );
-                            }}
-                          >
-                            {item} <X size={10} />
-                          </div>
-                        ))
-                      : ""}
-                  </div>
-                  <MultiSelect
-                    title="Select Payment Option"
-                    options={["Cash", "Gcash", "Maya", "Bank Transfer"]}
-                    selectedItem={field.value}
-                    setSelectedItem={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Payment Option"
+              options={["Cash", "Gcash", "Maya", "Bank Transfer"]}
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <MultiSelectField
               name="logisticServiceProvider"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Logistic Service Provider</FormLabel>
-
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.length > 0
-                      ? field.value.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
-                            onClick={() => {
-                              field.onChange(
-                                field.value.filter((i) => i !== item),
-                              );
-                            }}
-                          >
-                            {item} <X size={10} />
-                          </div>
-                        ))
-                      : ""}
-                  </div>
-                  <MultiSelect
-                    title="Select a Logistic Service Provider"
-                    options={[
-                      "LBC",
-                      "JRS Express",
-                      "Mr. Speedy",
-                      "Lalamove",
-                      "Grab",
-                      "Air21",
-                      "Food Panda",
-                    ]}
-                    selectedItem={field.value}
-                    setSelectedItem={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Logistic Service Provider"
+              options={[
+                "LBC",
+                "JRS Express",
+                "Mr. Speedy",
+                "Lalamove",
+                "Grab",
+                "Air21",
+                "Food Panda",
+              ]}
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <MultiSelectField
               name="industryClassification"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Industry Classification</FormLabel>
-
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.length > 0
-                      ? field.value.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
-                            onClick={() => {
-                              field.onChange(
-                                field.value.filter((i) => i !== item),
-                              );
-                            }}
-                          >
-                            {item} <X size={10} />
-                          </div>
-                        ))
-                      : ""}
-                  </div>
-                  <MultiSelect
-                    title="Select Industry Classification"
-                    options={[
-                      "Agriculture, Forestry and Fishing",
-                      "Manufacturing",
-                      "Wholesale and Retail Trade",
-                      "Service",
-                    ]}
-                    selectedItem={field.value}
-                    setSelectedItem={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Industry Classification"
+              options={[
+                "Agriculture, Forestry and Fishing",
+                "Manufacturing",
+                "Wholesale and Retail Trade",
+                "Service",
+              ]}
+              form={form}
             />
 
-            <FormField
-              control={form.control}
+            <MultiSelectField
               name="productLineService"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Product Line or Service</FormLabel>
-
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.length > 0
-                      ? field.value.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
-                            onClick={() => {
-                              field.onChange(
-                                field.value.filter((i) => i !== item),
-                              );
-                            }}
-                          >
-                            {item} <X size={10} />
-                          </div>
-                        ))
-                      : ""}
-                  </div>
-                  <MultiSelect
-                    title="Select product line or service"
-                    options={[
-                      "Clothing and Apparel",
-                      "Food Processing",
-                      "Furniture Production",
-                      "Handicrafts and Souvenirs",
-                      "Agricultural Products",
-                      "Health and Beauty Products",
-                      "Printing Services",
-                    ]}
-                    selectedItem={field.value}
-                    setSelectedItem={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Product Line or Service"
+              options={[
+                "Clothing and Apparel",
+                "Food Processing",
+                "Furniture Production",
+                "Handicrafts and Souvenirs",
+                "Agricultural Products",
+                "Health and Beauty Products",
+                "Printing Services",
+              ]}
+              form={form}
             />
+
             <FormField
               control={form.control}
               name="product"
@@ -487,182 +292,146 @@ const EditApplicationForm = () => {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="brandName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Brand Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Brand Name"
+              type="text"
+              placeholder="Sweet Treats"
+              form={form}
             />
-
-            <FormField
-              control={form.control}
+            <MultiSelectField
               name="category"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-
-                  <div className="flex flex-wrap gap-2">
-                    {field.value.length > 0
-                      ? field.value.map((item, index) => (
-                          <div
-                            key={index}
-                            className="flex items-center gap-2 rounded-full px-3 bg-[hsl(var(--chart-1))]"
-                            onClick={() => {
-                              field.onChange(
-                                field.value.filter((i) => i !== item),
-                              );
-                            }}
-                          >
-                            {item} <X size={10} />
-                          </div>
-                        ))
-                      : ""}
-                  </div>
-                  <MultiSelect
-                    title="Select Category"
-                    options={["food", "non-food", "service"]}
-                    selectedItem={field.value}
-                    setSelectedItem={field.onChange}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Category"
+              options={["food", "non-food", "service"]}
+              form={form}
             />
 
-            <FormField
-              control={form.control}
+            <SelectField
               name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Business Profile</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a type of business profile" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Sole Proprietorship">
-                        Sole Proprietorship
-                      </SelectItem>
-                      <SelectItem value="Partnership">Partnership</SelectItem>
-                      <SelectItem value="Corporation">Corporation</SelectItem>
-                      <SelectItem value="NGO/Cooperative">
-                        NGO/Cooperative
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Business Profile"
+              options={[
+                { value: "Sole Proprietorship", label: "Sole Proprietorship" },
+                { value: "Partnership", label: "Partnership" },
+                { value: "Corporation", label: "Corporation" },
+                { value: "NGO/Cooperative", label: "NGO/Cooperative" },
+              ]}
+              placeholder="Select a type of business profile"
+              form={form}
             />
 
-            <FormField
-              control={form.control}
+            <SelectField
               name="assetSize"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Asset Size</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select asset size" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Less than or Equal to 3,000,000">
-                        Less than or Equal to 3,000,000
-                      </SelectItem>
-                      <SelectItem value="3,000,001 - 15,000,000">
-                        3,000,001 - 15,000,000
-                      </SelectItem>
-                      <SelectItem value="15,000,001 - 100,000,000">
-                        15,000,001 - 100,000,000
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Asset Size"
+              options={[
+                {
+                  value: "Less than or Equal to 3,000,000",
+                  label: "Less than or Equal to 3,000,000",
+                },
+                {
+                  value: "3,000,001 - 15,000,000",
+                  label: "3,000,001 - 15,000,000",
+                },
+                {
+                  value: "15,000,001 - 100,000,000",
+                  label: "15,000,001 - 100,000,000",
+                },
+              ]}
+              placeholder="Select asset size"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="targetSale"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Target Sales</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Target Sale"
+              type="number"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="fulltimeEmployee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Full-time Employees</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Number of Full-time Employees"
+              type="number"
+              form={form}
             />
-            <FormField
-              control={form.control}
+            <TextInputField
               name="parttimeEmployee"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Part-time Employees</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Number of Part-time Employees"
+              type="number"
+              form={form}
             />
-            <FormField
-              control={form.control}
+
+            <TextInputField
               name="annualIncome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Annual Income</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Annual Income"
+              type="number"
+              form={form}
             />
-            <FormField
-              control={form.control}
+            <TextInputField
               name="dateOfEstablishment"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Date of Establishment</FormLabel>
-                  <FormControl>
-                    <Input placeholder="" type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Date of Establishment"
+              type="date"
+              form={form}
             />
+
+            <FileField
+              name="logoFile"
+              label="Logo"
+              accept="image/*"
+              form={form}
+            />
+
+            <p className="text-xl font-bold">Requirements</p>
+
+            <FileField
+              name="waiverFile"
+              label="Waiver of Claims"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
+            <FileField
+              name="signedTermsFile"
+              label="Signed Terms and Condition"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
+            <FileField
+              name="paymentQRFile"
+              label="Digital Payment QR Code"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
+            <FileField
+              name="businessNameRegFile"
+              label="Business Name Registration (DTI, SEC, CDA)"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
+            <FileField
+              name="validIdFile"
+              label="Valid ID of the Owner"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
+            <FileField
+              name="menuCopyFile"
+              label="Photocopy of the Menu"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
+            <FileField
+              name="productPhotosFile"
+              label="Photos of the products to be sold"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+
             <div>
               <div className="flex items-center gap-2 pt-2">
                 <Checkbox

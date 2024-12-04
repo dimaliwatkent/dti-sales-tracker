@@ -166,7 +166,7 @@ const Sale = () => {
                   </TabsList>
                   <TabsContent value="products">
                     <SalesProduct
-                      userId={user._id}
+                      activeEventId={activeSale?.event || ""}
                       isLoading={isLoading}
                       setTransaction={setTransaction}
                       handleUpdateSale={handleUpdateSale}

@@ -2,6 +2,9 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import SignUp from "./features/auth/SignUp";
 import SignIn from "./features/auth/SignIn";
+import ForgotPassword from "./features/auth/ForgotPassword";
+import ResetPassword from "./features/auth/ResetPassword";
+import ResetComplete from "./features/auth/ResetComplete";
 import UnAuthorized from "./features/UnAuthorized";
 import Redirect from "./components/Redirect";
 import RestrictedRoute from "./components/RestrictedRoute";
@@ -40,6 +43,8 @@ import {
   MonitorInfo,
 } from "./features/monitor";
 
+import ViewNotification from "./features/notification/ViewNotification";
+
 import { EventViolation, ViewViolation } from "./features/violation";
 
 import DataLoader from "./components/DataLoader";
@@ -55,6 +60,9 @@ function App() {
            */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/password-reset" element={<ResetPassword />} />
+          <Route path="/password-reset/complete" element={<ResetComplete />} />
           <Route path="/unauthorized" element={<UnAuthorized />} />
 
           <Route path="/" element={<Redirect />} />
@@ -109,6 +117,11 @@ function App() {
               />
 
               <Route path="/admin/profile" element={<Profile />} />
+
+              <Route
+                path="/admin/notification/view-notification"
+                element={<ViewNotification />}
+              />
             </Route>
           </Route>
 
@@ -137,6 +150,11 @@ function App() {
               />
 
               <Route path="/profile" element={<Profile />} />
+
+              <Route
+                path="/notification/view-notification"
+                element={<ViewNotification />}
+              />
             </Route>
           </Route>
 
@@ -155,6 +173,11 @@ function App() {
                 element={<MonitorViewBusiness />}
               />
               <Route path="/monitor/info" element={<MonitorInfo />} />
+
+              <Route
+                path="/monitor/notification/view-notification"
+                element={<ViewNotification />}
+              />
             </Route>
           </Route>
 

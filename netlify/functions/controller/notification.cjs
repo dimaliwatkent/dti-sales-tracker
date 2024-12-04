@@ -1,5 +1,24 @@
 const Notification = require("../models/notification.cjs");
 
+// {
+//   "userId": "62d8a4c6a3f3a5b3a8a8a8a8",
+//   "title": "New notification",
+//   "message": "This is a new notification",
+//   "type": "info",
+//   "severity": "medium"
+// }
+
+const addNotification = async (notificationData) => {
+  try {
+    console.log("during");
+    const notification = new Notification(notificationData);
+    await notification.save();
+    return notification;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const createNotification = async (req, res) => {
   try {
     const notification = new Notification(req.body);
@@ -15,7 +34,7 @@ const getNotifications = async (req, res) => {
     const notifications = await Notification.find({
       userId: req.params.userId,
     });
-    res.json({ notification: notifications });
+    res.json({ notificationList: notifications });
   } catch (error) {
     res.status(404).json({ message: error.message });
   }
@@ -57,6 +76,7 @@ const markAsRead = async (req, res) => {
 };
 
 module.exports = {
+  addNotification,
   createNotification,
   getNotifications,
   updateNotification,

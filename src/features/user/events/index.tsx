@@ -19,12 +19,15 @@ const Events = () => {
     <div>
       <div>
         <Tabs defaultValue="ongoingEventList" className="">
+          <div className="flex gap-2">
+            
           <TabsList>
             <TabsTrigger value="ongoingEventList">Ongoing</TabsTrigger>
             <TabsTrigger value="openEventList">Application</TabsTrigger>
             <TabsTrigger value="userEventList">Applied</TabsTrigger>
           </TabsList>
           <Refresh refetch={refetchUserEventList} className="ml-2" />
+          </div>
           <TabsContent value="ongoingEventList">
             <OngoingEventTab />
           </TabsContent>

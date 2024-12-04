@@ -15,6 +15,7 @@ import ProfileSidebar from "@/features/profile/ProfileSidebar";
 import { Separator } from "./ui/separator";
 
 import { useUserData } from "@/hooks/dataHooks";
+import NotificationButton from "@/features/notification/NotificationButton";
 
 const Topbar = (): JSX.Element => {
   const user = useUserData();
@@ -52,24 +53,33 @@ const Topbar = (): JSX.Element => {
         </h1>
       </div>
 
-      <div className="hidden md:block" onClick={handleProfileClick}>
+      <div className="hidden md:block">
         <div className="flex items-center space-x-4">
-          {user?.picture ? (
-            <div className="aspect-square h-8 rounded-full overflow-hidden">
-              <img
-                src={user?.picture}
-                alt="profile-picture"
-                className="object-cover h-full w-full"
-              />
+          <div
+            onClick={handleProfileClick}
+            className="flex items-center space-x-4"
+          >
+            {user?.picture ? (
+              <div className="aspect-square h-8 rounded-full overflow-hidden">
+                <img
+                  src={user?.picture}
+                  alt="profile-picture"
+                  className="object-cover h-full w-full"
+                />
+              </div>
+            ) : (
+              <div className="bg-gray-800 w-8 h-8 rounded-full"></div>
+            )}
+            <div>
+              <p className="font-bold">{user?.name}</p>
+              <p className="leading-none text-xs">
+                {roleMap[user?.role ?? ""] || "Unknown Role"}
+              </p>
             </div>
-          ) : (
-            <div className="bg-gray-800 w-8 h-8 rounded-full"></div>
-          )}
+          </div>
+
           <div>
-            <p className="font-bold">{user?.name}</p>
-            <p className="leading-none text-xs">
-              {roleMap[user?.role ?? ""] || "Unknown Role"}
-            </p>
+            <NotificationButton />
           </div>
           <Separator
             orientation="vertical"
@@ -80,7 +90,10 @@ const Topbar = (): JSX.Element => {
       </div>
 
       <div className="mobile block md:hidden">
-        <ProfileSidebar />
+        <div className="flex gap-6 items-center">
+          <NotificationButton />
+          <ProfileSidebar />
+        </div>
       </div>
     </div>
   );

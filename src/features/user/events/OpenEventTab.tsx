@@ -7,6 +7,7 @@ import { useOpenEventListData, useUserEventListData } from "@/hooks/dataHooks";
 import StatusCard from "./StatusCard";
 import useDataLoader from "@/hooks/useDataLoader";
 import SpinnerText from "@/components/SpinnerWithText";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const OpenEventTab = () => {
   const openEventList = useOpenEventListData();
@@ -24,6 +25,8 @@ const OpenEventTab = () => {
 
   return (
     <div>
+        <ScrollArea className="w-full h-[calc(100vh-180px)] md:h-[calc(100vh-180px)]">
+
       <div className="flex justify-center my-4">
         <p className="font-bold">Events Open for Application</p>
       </div>
@@ -68,6 +71,8 @@ const OpenEventTab = () => {
           ))
         )}
       </div>
+    
+      </ScrollArea>
     </div>
   );
 };

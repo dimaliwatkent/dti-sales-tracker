@@ -34,6 +34,7 @@ import { clearSaleList } from "@/api/sale/saleSlice";
 import { clearUserList } from "@/api/user/userSlice";
 
 import { signInSchema } from "@/zod/authSchema";
+import { clearNotication } from "@/api/notification/notificationSlice";
 
 const SignIn = () => {
   const { toast } = useToast();
@@ -91,6 +92,7 @@ const SignIn = () => {
     dispatch(clearEventList());
     dispatch(clearSaleList());
     dispatch(clearUserList());
+    dispatch(clearNotication());
   }, [dispatch]);
 
   return (
@@ -153,8 +155,18 @@ const SignIn = () => {
                 </FormItem>
               )}
             />
+            <div className="flex justify-end pb-2">
+              <Label htmlFor="forgotPass">
+                <a
+                  className="mx-2 text-blue-500 text-sm"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  Forgot password
+                </a>
+              </Label>
+            </div>
 
-            <Button type="submit" disabled={isLoading} className="w-full my-2">
+            <Button type="submit" disabled={isLoading} className="w-full">
               {isLoading ? "Loading..." : "Sign In"}
             </Button>
           </form>

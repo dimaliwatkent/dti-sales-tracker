@@ -2,10 +2,12 @@ import { EventBusiness } from "@/types/EventType";
 import { formatDateTime } from "@/utils/formatTime";
 import { eventStatusMap } from "@/constants";
 
+import BusinessCard from "@/features/admin/management/business/BusinessCard";
 import { Card } from "@/components/ui/card";
 import { useUserEventListData } from "@/hooks/dataHooks";
 import useDataLoader from "@/hooks/useDataLoader";
 import SpinnerText from "@/components/SpinnerWithText";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const UserEventTab = () => {
   const userEventList = useUserEventListData();
@@ -22,6 +24,8 @@ const UserEventTab = () => {
 
   return (
     <div>
+        <ScrollArea className="w-full h-[calc(100vh-180px)] md:h-[calc(100vh-180px)]">
+
       <div className="flex justify-center my-4">
         <p className="font-bold">Events User Has Applied To</p>
       </div>
@@ -54,26 +58,14 @@ const UserEventTab = () => {
                   <p className="font-bold">Location</p>
                   {event.location}
                 </div>
-                <div className="border rounded-lg p-3">
-                  <div className="flex justify-center">
-                    <p className="font-bold">Business</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <p className="font-bold">Business Name</p>
-                    {event.business.name}
-                  </div>
-
-                  <div className="flex gap-2">
-                    <p className="font-bold">Application Status</p>
-                    {event.business.applicationStatus}
-                  </div>
-
-                </div>
+                <BusinessCard business={event.business} type="regular" />
               </Card>
             </div>
           ))
         )}
       </div>
+    
+      </ScrollArea>
     </div>
   );
 };

@@ -14,7 +14,7 @@ const {
 router.get("/", getCustomProductList);
 router.get("/:id", getCustomProduct);
 router.get("/user/:userId", getCustomProductByUser);
-router.post("/", addCustomProduct);
+router.post("/:eventId/:userId", addCustomProduct);
 router.put("/:id", editCustomProduct);
 router.delete("/:id", deleteCustomProduct);
 router.patch("/:id", archiveCustomProduct);

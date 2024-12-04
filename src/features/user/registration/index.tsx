@@ -1,16 +1,18 @@
-import { useNavigate } from "react-router-dom";
 import { useUserData } from "@/hooks/dataHooks";
 import useInterval from "@/hooks/useInterval";
 import { useGetUserQuery } from "@/api/user/userApiSlice";
 import { useToast } from "@/components/ui/use-toast";
 import { intervalTime } from "@/constants";
 
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
+
 const Registration = () => {
   const user = useUserData();
   const { data, refetch } = useGetUserQuery(user._id);
   const newUserRole = data?.user?.role;
-  const navigate = useNavigate();
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   useInterval(() => {
     if (newUserRole === "newUser") {
@@ -19,12 +21,10 @@ const Registration = () => {
     } else if (newUserRole === "rejected") {
       return;
     } else {
-      navigate("/signin");
-
       toast({
         variant: "default",
         title: "Success",
-        description: "Account has changed. Please Sign In again",
+        description: "Account has been approved. Please Sign In again",
       });
     }
   }, intervalTime.accountRegistration);
@@ -39,11 +39,20 @@ const Registration = () => {
             <p className="text-destructive">
               Your registration has been rejected.
             </p>
-          ) : (
+          ) : newUserRole === "newUser" ? (
             <p>
               Your account registration has been received. Please wait for
               confirmation.
             </p>
+          ) : (
+            <div className="flex flex-col items-center ">
+              <p>Your account registration has been approved.</p>
+              <p className="pb-2">
+                For a seamless experience, please sign in again to update your
+                account status.
+              </p>
+              <Button onClick={() => navigate("/signin")}>Go to Sign In</Button>
+            </div>
           )}
         </div>
       </div>

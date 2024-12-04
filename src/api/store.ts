@@ -5,6 +5,8 @@ import eventReducer from "./event/eventSlice";
 import businessReducer from "./business/businessSlice";
 import saleReducer from "./sale/saleSlice";
 import userReducer from "./user/userSlice";
+import notificationReducer from "./notification/notificationSlice";
+import productReducer from "./product/productSlice";
 
 import { persistReducer, persistStore } from "redux-persist";
 import storage from "redux-persist/lib/storage";
@@ -34,6 +36,16 @@ const userPersistConfig = {
   storage,
 };
 
+const notificationPersistConfig = {
+  key: "notification",
+  storage,
+};
+
+const productPersistConfig = {
+  key: "notification",
+  storage,
+};
+
 const persistedAuthReducer = persistReducer(authPersistConfig, authReducer);
 const persistedEventReducer = persistReducer(eventPersistConfig, eventReducer);
 const persistedBusinessReducer = persistReducer(
@@ -43,6 +55,16 @@ const persistedBusinessReducer = persistReducer(
 const persistedSaleReducer = persistReducer(salePersistConfig, saleReducer);
 const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
 
+const persistedNotificationReducer = persistReducer(
+  notificationPersistConfig,
+  notificationReducer,
+);
+
+const persistedProductReducer = persistReducer(
+  productPersistConfig,
+  productReducer,
+);
+
 const store = configureStore({
   reducer: {
     [apiSlice.reducerPath]: apiSlice.reducer,
@@ -51,6 +73,8 @@ const store = configureStore({
     business: persistedBusinessReducer,
     sale: persistedSaleReducer,
     user: persistedUserReducer,
+    notification: persistedNotificationReducer,
+    product: persistedProductReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware().concat(apiSlice.middleware),

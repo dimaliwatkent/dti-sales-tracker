@@ -29,12 +29,14 @@ const AdminManagement = () => {
   return (
     <div>
       <Tabs defaultValue="events" className="">
-        <TabsList>
-          <TabsTrigger value="events">Events</TabsTrigger>
-          <TabsTrigger value="businesses">Businesses</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-        </TabsList>
-        <Refresh refetch={refetchAll} className="ml-2" />
+        <div className="flex">
+          <TabsList>
+            <TabsTrigger value="events">Events</TabsTrigger>
+            <TabsTrigger value="businesses">Businesses</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+          </TabsList>
+          <Refresh refetch={refetchAll} className="ml-2" />
+        </div>
         <TabsContent value="events">
           <Events />
         </TabsContent>

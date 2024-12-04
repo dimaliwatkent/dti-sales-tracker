@@ -77,36 +77,24 @@ const getCustomProductByUser = async (req, res) => {
 
 const addCustomProduct = async (req, res) => {
   try {
-    const { userId, name, price } = req.body;
+    const { eventId, userId } = req.params;
+    const productList = req.body.productList;
 
-    if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
+    // Delete all products that match the event and user
+    await CustomProduct.deleteMany({ event: eventId, user: userId });
 
-    const user = await User.findById(userId);
+    // Add all the content of the product list to CustomProduct
+    const customProducts = productList.map((product) => ({
+      user: product.user,
+      event: product.event,
+      name: product.name,
+      price: product.price,
+    }));
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const customProduct = await CustomProduct.insertMany(customProducts);
 
-    const existingProduct = await CustomProduct.findOne({ name });
-
-    if (existingProduct) {
-      return res.status(400).json({ message: "Product already exists" });
-    }
-
-    const customProduct = new CustomProduct({
-      user: userId,
-      name,
-      price,
-    });
-    await customProduct.save();
-
-    await User.findByIdAndUpdate(userId, {
-      $push: { customProductList: customProduct._id },
-    });
     return res.status(201).json({
-      message: "Product created successfully",
+      message: "Products updated successfully",
       customProduct,
     });
   } catch (err) {

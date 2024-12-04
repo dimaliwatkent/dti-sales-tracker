@@ -21,6 +21,12 @@ import { selectCurrentUser } from "@/api/auth/authSlice";
 import { useSelector } from "react-redux";
 import { useGetRecordSaleQuery } from "@/api/sale/saleApiSlice";
 import { setRecordList } from "@/api/sale/saleSlice";
+import { setNotificationList } from "@/api/notification/notificationSlice";
+import { useGetNotificationsQuery } from "@/api/notification/notificationApiSlice";
+import useInterval from "./useInterval";
+import { intervalTime } from "@/constants";
+import { useGetProductListQuery } from "@/api/product/productApiSlice";
+import { setProductList } from "@/api/product/productSlice";
 
 const useDataLoader = () => {
   const user: User = useSelector(selectCurrentUser);
@@ -102,6 +108,22 @@ const useDataLoader = () => {
     },
   );
 
+  const {
+    data: notificationList,
+    isLoading: isNotificationListLoading,
+    refetch: refetchNotificationList,
+  } = useGetNotificationsQuery(user._id, {
+    skip: !user,
+  });
+
+  const {
+    data: productList,
+    isLoading: isProductListLoading,
+    refetch: refetchProductList,
+  } = useGetProductListQuery(user._id, {
+    skip: role !== "user",
+  });
+
   const isLoading =
     isUserDataLoading ||
     isUserEventListLoading ||
@@ -109,7 +131,9 @@ const useDataLoader = () => {
     isEventListLoading ||
     isUserListLoading ||
     isRecordListLoading ||
-    isMonitorEventListLoading;
+    isMonitorEventListLoading ||
+    isNotificationListLoading ||
+    isProductListLoading;
 
   const refetchAll = async () => {
     await Promise.all([
@@ -163,6 +187,23 @@ const useDataLoader = () => {
     }
   }, [monitorEventList, role, dispatch]);
 
+  useEffect(() => {
+    if (notificationList && user) {
+      dispatch(setNotificationList(notificationList.notificationList));
+    }
+  }, [notificationList, role, dispatch]);
+
+  useEffect(() => {
+    if (productList && role === "user") {
+      dispatch(setProductList(productList.customProduct));
+    }
+  }, [notificationList, role, dispatch]);
+
+  useInterval(() => {
+    refetchNotificationList();
+    console.log("notification interval refetch");
+  }, intervalTime.notification);
+
   return {
     isLoading,
     refetchAll,
@@ -180,6 +221,10 @@ const useDataLoader = () => {
     refetchRecordList,
     monitorEventList,
     refetchMonitorEventList,
+    notificationList,
+    refetchNotificationList,
+    productList,
+    refetchProductList,
   };
 };
 

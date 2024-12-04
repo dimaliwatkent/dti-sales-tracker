@@ -13,7 +13,7 @@ router.post("/", createNotification);
 router.get("/:userId", getNotifications);
 router.put("/:id", updateNotification);
 router.delete("/:id", deleteNotification);
-router.put("/mark-as-read/:id", markAsRead);
+router.patch("/mark-as-read/:id", markAsRead);
 
 module.exports = router;
 module.exports = router;

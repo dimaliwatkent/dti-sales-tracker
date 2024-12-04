@@ -8,9 +8,6 @@ const UserSchema = new mongoose.Schema(
         ref: "business",
       },
     ],
-    customProductList: [
-      { type: mongoose.Schema.Types.ObjectId, ref: "customProduct" },
-    ],
     name: {
       type: String,
       required: true,
@@ -66,8 +63,23 @@ const UserSchema = new mongoose.Schema(
     picture: {
       type: String,
     },
+    businessName: {
+      type: String,
+      trim: true,
+      minlength: [3, "Business name must be at least 3 characters"],
+      maxlength: [50, "Business name cannot exceed 50 characters"],
+    },
+    document: {
+      type: String,
+    },
     refreshToken: {
       type: String,
+    },
+    resetPin: {
+      type: String,
+    },
+    resetPinExpiration: {
+      type: Date,
     },
     isArchived: {
       type: Boolean,

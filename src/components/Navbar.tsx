@@ -35,6 +35,26 @@ const Navbar = (): JSX.Element => {
     setActiveItem(matchingItem ? matchingItem.text.toLowerCase() : "");
   }, [status, pathname]);
 
+  const isItemHiddenByRole = (item: SidebarItem) => {
+    if (
+      ["admin", "user", "monitor"].includes(status) &&
+      item.path === "/registration"
+    ) {
+      return true;
+    }
+    if (
+      ["pendingUser", "newUser", "rejected"].includes(status) &&
+      item.path !== "/registration"
+    ) {
+      return true;
+    }
+    return false;
+  };
+  const isItemHiddenByText = (item: SidebarItem) => {
+    const lowercaseText = item.text.toLowerCase();
+    return ["notifications"].includes(lowercaseText);
+  };
+
   return (
     <div>
       <div className="hidden md:block px-4 border-r h-screen rounded-tr-3xl ">
@@ -52,15 +72,8 @@ const Navbar = (): JSX.Element => {
           {navbarItems.map((item) => {
             const lowercaseText = item.text.toLowerCase();
 
-            const isHidden: boolean =
-              ((status === "admin" ||
-                status === "user" ||
-                status === "monitor") &&
-                item.path === "/registration") ||
-              ((status === "pendingUser" ||
-                status === "newUser" ||
-                status === "rejected") &&
-                item.path !== "/registration");
+            const isHidden =
+              isItemHiddenByRole(item) || isItemHiddenByText(item);
 
             return (
               <Link
@@ -90,13 +103,8 @@ const Navbar = (): JSX.Element => {
           {navbarItems.map((item) => {
             const lowercaseText = item.text.toLowerCase();
 
-            const isHidden: boolean =
-              ((status === "admin" ||
-                status === "user" ||
-                status === "monitor") &&
-                item.path === "/registration") ||
-              ((status === "pendingUser" || status === "newUser") &&
-                item.path !== "/registration");
+            const isHidden =
+              isItemHiddenByRole(item) || isItemHiddenByText(item);
 
             return (
               <Link
