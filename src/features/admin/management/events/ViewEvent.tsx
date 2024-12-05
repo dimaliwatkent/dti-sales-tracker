@@ -85,14 +85,15 @@ const ViewEvent = (): JSX.Element => {
           defaultValue={event.status === "ongoing" ? "approved" : "applicants"}
           className=""
         >
-          <TabsList>
-            <TabsTrigger value="applicants">Applicants</TabsTrigger>
-            <TabsTrigger value="forcompletion">For Completion</TabsTrigger>
-            <TabsTrigger value="approved">Approved</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected</TabsTrigger>
-          </TabsList>
-
-          <Refresh refetch={refetchEvent} className="ml-2" />
+          <div className="flex">
+            <TabsList>
+              <TabsTrigger value="applicants">Applicants</TabsTrigger>
+              <TabsTrigger value="forcompletion">For Completion</TabsTrigger>
+              <TabsTrigger value="approved">Approved</TabsTrigger>
+              <TabsTrigger value="rejected">Rejected</TabsTrigger>
+            </TabsList>
+            <Refresh refetch={refetchEvent} className="ml-2" />
+          </div>
 
           <TabsContent value="applicants">
             {!applicantList || applicantList.length === 0 ? (
