@@ -273,7 +273,9 @@ const applicationStatus = async (req, res) => {
       return res.status(400).json({ message: "Invalid business ID" });
     }
 
-    const existingBusiness = await Business.findById(id);
+    const existingBusiness = await Business.findById(id)
+      .populate("user")
+      .exec();
 
     if (!existingBusiness) {
       return res.status(404).json({ message: "No business found" });
