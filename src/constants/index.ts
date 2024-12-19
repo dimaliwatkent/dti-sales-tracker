@@ -54,11 +54,6 @@ const sidebarItems: SidebarItem[] = [
   //   path: "/records",
   // },
   {
-    text: "Products",
-    icon: GearIcon,
-    path: "/products",
-  },
-  {
     text: "Events",
     icon: CalendarIcon,
     path: "/events",
@@ -143,110 +138,6 @@ const intervalTime = {
   notification: 600, // seconds
 };
 
-const violationList = [
-  {
-    name: "Late Ingress",
-    fee: 1000,
-    description: "",
-  },
-  {
-    name: "Back-out",
-    fee: 1000,
-    description: "1-year suspension from Marinduque Expo plus fine",
-  },
-  {
-    name: "Tardiness",
-    fee: 100,
-    description: "Non-observance of exhibitor hours",
-  },
-  {
-    name: "After 12:00 NN",
-    fee: 500,
-    description: "Non-observance of exhibitor hours",
-  },
-  {
-    name: "Early Departure/Undertime",
-    fee: 100,
-    description: "Non-observance of exhibitor hours",
-  },
-  {
-    name: "Unmanned Booth: 1st Offense",
-    fee: 500,
-    description: "",
-  },
-  {
-    name: "Unmanned Booth: 2nd Offense",
-    fee: 1000,
-    description: "",
-  },
-  {
-    name: "Closed booth without permission: 1st Offense",
-    fee: 500,
-    description: "",
-  },
-  {
-    name: "Closed booth without permission: 2nd Offense",
-    fee: 1000,
-    description: "",
-  },
-  {
-    name: "Non-compliance with dress code",
-    fee: 500,
-    description: "",
-  },
-  {
-    name: "Early Serving of Alcohol",
-    fee: 500,
-    description: "",
-  },
-  {
-    name: "Selling Other Products",
-    fee: 1000,
-    description:
-      "Selling products other than those declared in the application by the exhibitor and Selling not a Marinduque product (1-year suspension from Marinduque Expo plus fine)",
-  },
-  {
-    name: "Early Egress",
-    fee: 1000,
-    description: "1-year suspension from Marinduque Expo plus fine",
-  },
-  {
-    name: "Nonpayment: Electricity Fee",
-    fee: 5000,
-    description: "",
-  },
-  {
-    name: "Nonpayment: Municipality of Boac",
-    fee: 5000,
-    description: "",
-  },
-  {
-    name: "Dirty Area",
-    fee: 500,
-    description: "Dirty dining, back, and sink-no mesh",
-  },
-  {
-    name: "Using Plastic or Styrofoam",
-    fee: 500,
-    description: "",
-  },
-  {
-    name: "Behaviour-related or Other Admin Concerns",
-    fee: 1000,
-    description: "",
-  },
-  {
-    name: "Non-observance of Minimum Health Protocol",
-    fee: 500,
-    description: "",
-  },
-  {
-    name: "Sales Submission",
-    fee: 500,
-    description: "",
-  },
-];
-
 export {
   adminSidebarItems,
   sidebarItems,
@@ -255,5 +146,4 @@ export {
   eventStatusMap,
   applicationStatusMap,
   intervalTime,
-  violationList,
 };

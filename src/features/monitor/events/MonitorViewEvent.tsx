@@ -1,37 +1,60 @@
-import { selectMonitorEvent } from "@/api/event/eventSlice";
-import { useDispatch, useSelector } from "react-redux";
-
-import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useNavigate } from "react-router-dom";
-import { setMonitorBusiness } from "@/api/business/businessSlice";
-import { BusinessWithViolation } from "@/types/BusinessType";
+import { useNavigate, useParams } from "react-router-dom";
+import { BusinessListViolationType } from "@/types/BusinessType";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import SpinnerText from "@/components/SpinnerWithText";
+import { useGetEventWithBusinessQuery } from "@/api/event/eventApiSlice";
 
 const MonitorViewEvent = () => {
-  const event = useSelector(selectMonitorEvent);
-  const businessList = event.businessList;
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { id } = useParams();
 
-  const handleBusinessClick = (business: BusinessWithViolation) => {
-    dispatch(setMonitorBusiness(business));
-    navigate("/monitor/events/view-business");
+  const {
+    data: businessListData,
+    isLoading: isBusinessListLoading,
+    // refetch: refetchBusinessList,
+  } = useGetEventWithBusinessQuery(id);
+
+  const [businessList, setBusinessList] = useState<BusinessListViolationType[]>(
+    [],
+  );
+
+  useEffect(() => {
+    if (
+      businessListData?.event.businessList &&
+      businessListData?.event.businessList.length > 0
+    ) {
+      setBusinessList(businessListData?.event.businessList);
+    }
+  }, [businessListData]);
+
+  const navigate = useNavigate();
+
+  const handleBusinessClick = (businessId: string) => {
+    navigate(`/monitor/events/view-business/${businessId}/${id}`);
   };
 
+  if (isBusinessListLoading) {
+    return (
+      <div>
+        <SpinnerText spin={isBusinessListLoading} />
+      </div>
+    );
+  }
   return (
     <div>
-      <p className="text-3xl font-bold my-6">{event.title}</p>
+      <p className="text-3xl font-bold my-6">{businessListData?.eventTitle}</p>
       <div>
         <ScrollArea className="w-full h-[calc(100vh-230px)] md:h-[calc(100vh-150px)]">
           {businessList && businessList.length > 0 ? (
             businessList.map((business) => (
               <div key={business._id}>
-                <Card
-                  className="p-6 space-y-3"
-                  onClick={() => handleBusinessClick(business)}
-                >
+                <div className="flex justify-between items-center p-4  border rounded-lg">
                   <p>{business.name}</p>
-                </Card>
+                  <Button onClick={() => handleBusinessClick(business._id)}>
+                    Violations
+                  </Button>
+                </div>
               </div>
             ))
           ) : (

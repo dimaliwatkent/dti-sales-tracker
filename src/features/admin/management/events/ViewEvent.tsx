@@ -1,88 +1,111 @@
-import { selectEvent, setEvent } from "@/api/event/eventSlice";
-import { useDispatch, useSelector } from "react-redux";
 import { formatDateTime } from "@/utils/formatTime";
-import { eventStatusMap, intervalTime } from "@/constants";
+import { eventStatusMap } from "@/constants";
 
 import BusinessCard from "../business/BusinessCard";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-import useInterval from "@/hooks/useInterval";
-import { useGetEventQuery } from "@/api/event/eventApiSlice";
-import { useState } from "react";
+import { useGetEventPopulatedQuery } from "@/api/event/eventApiSlice";
+import { useEffect, useState } from "react";
 import SpinnerText from "@/components/SpinnerWithText";
 import Refresh from "@/components/Refresh";
 
+import { BusinessType } from "@/types/BusinessType";
+import { EventPopulatedType } from "@/types/EventType";
+
+import { useParams } from "react-router-dom";
+
 const ViewEvent = (): JSX.Element => {
-  const event = useSelector(selectEvent);
-  const [rerenderTrigger, setRerenderTrigger] = useState(0);
+  const { id } = useParams();
 
-  const { isLoading, refetch } = useGetEventQuery(event._id);
-
-  const dispatch = useDispatch();
-
-  const applicants = event?.applicantList;
-  const exhibitorsList = event?.businessList;
-
-  const applicantList = applicants?.filter(
-    (business) => business.applicationStatus === "pending",
+  const [event, setEvent] = useState<EventPopulatedType | undefined>(undefined);
+  const [applicantList, setApplicantList] = useState<BusinessType[]>([]);
+  const [forCompletionList, setForCompletionList] = useState<BusinessType[]>(
+    [],
   );
-  const forCompletionList = applicants?.filter(
-    (business) =>
-      business.applicationStatus === "forcompletion" ||
-      business.applicationStatus === "complied",
-  );
-  const rejectedList = applicants?.filter(
-    (business) => business.applicationStatus === "rejected",
-  );
+  const [rejectedList, setRejectedList] = useState<BusinessType[]>([]);
+  const [exhibitorList, setExhibitorList] = useState<BusinessType[]>([]);
 
-  const refetchEvent = async () => {
-    const result = await refetch().unwrap();
-    dispatch(setEvent(result.event));
-    setRerenderTrigger(rerenderTrigger + 1);
+  const {
+    data: eventData,
+    isLoading: isEventLoading,
+    refetch: refetchEvent,
+  } = useGetEventPopulatedQuery(id);
+
+  useEffect(() => {
+    if (eventData?.event) {
+      setEvent(eventData?.event);
+
+      if (eventData?.event.applicantList.length > 0) {
+        const applicantListData = eventData?.event.applicantList;
+        const applicants = applicantListData.filter(
+          (business: BusinessType) => business.applicationStatus === "pending",
+        );
+        setApplicantList(applicants);
+
+        const forCompletions = applicantListData.filter(
+          (business: BusinessType) =>
+            business.applicationStatus === "forcompletion" ||
+            business.applicationStatus === "complied",
+        );
+        setForCompletionList(forCompletions);
+
+        const rejected = applicantListData.filter(
+          (business: BusinessType) => business.applicationStatus === "rejected",
+        );
+        setRejectedList(rejected);
+      }
+
+      if (eventData?.event.businessList.length > 0) {
+        setExhibitorList(eventData?.event.businessList);
+      }
+    }
+  }, [eventData]);
+
+  const refetchEventData = async () => {
+    await refetchEvent().unwrap();
   };
 
-  useInterval(() => {
-    refetchEvent();
-    console.log("interval refetch");
-  }, intervalTime.adminViewEvent);
-
-  if (isLoading) {
+  if (isEventLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading} />
+        <SpinnerText spin={isEventLoading} />
       </div>
     );
   }
 
   return (
     <div>
-      <p className="text-3xl font-bold my-6">{event.title}</p>
+      <p className="text-3xl font-bold my-6">{event?.title}</p>
       <div className="mb-4 space-y-3 rounded-lg border p-4">
         <div className="flex gap-2">
           <p className="font-bold">Duration</p>
-          {formatDateTime(event.startDate)} - {formatDateTime(event.endDate)}
+          {formatDateTime(event?.startDate)} - {formatDateTime(event?.endDate)}
         </div>
 
         <div className="flex gap-2">
           <p className="font-bold">Application Duration</p>
-          {formatDateTime(event.applicationStart)} -{" "}
-          {formatDateTime(event.applicationEnd)}
+          {formatDateTime(event?.applicationStart)} -{" "}
+          {formatDateTime(event?.applicationEnd)}
         </div>
         <div className="flex gap-2">
           <p className="font-bold">Status</p>
-          {eventStatusMap[event.status]}
+          {eventStatusMap[event?.status || "none"]}
         </div>
         <div className="flex gap-2">
           <p className="font-bold">Location</p>
-          {event.location}
+          {event?.location}
+        </div>
+        <div className="flex gap-2">
+          <p className="font-bold">Location Type</p>
+          {event?.isLocal ? "Local" : "Non-Local"}
         </div>
       </div>
 
       <div>
         <p className="text-xl font-bold mb-2">Businesses</p>
         <Tabs
-          defaultValue={event.status === "ongoing" ? "approved" : "applicants"}
+          defaultValue={event?.status === "ongoing" ? "approved" : "applicants"}
           className=""
         >
           <div className="flex">
@@ -92,7 +115,8 @@ const ViewEvent = (): JSX.Element => {
               <TabsTrigger value="approved">Approved</TabsTrigger>
               <TabsTrigger value="rejected">Rejected</TabsTrigger>
             </TabsList>
-            <Refresh refetch={refetchEvent} className="ml-2" />
+
+            <Refresh refetch={refetchEventData} className="ml-2" />
           </div>
 
           <TabsContent value="applicants">
@@ -119,10 +143,10 @@ const ViewEvent = (): JSX.Element => {
           </TabsContent>
 
           <TabsContent value="approved">
-            {!exhibitorsList || exhibitorsList.length === 0 ? (
+            {!exhibitorList || exhibitorList.length === 0 ? (
               <p>No exhibitors</p>
             ) : (
-              exhibitorsList.map((business) => (
+              exhibitorList.map((business) => (
                 <div key={business._id} className="mb-4">
                   <BusinessCard business={business} type={"approved"} />
                 </div>

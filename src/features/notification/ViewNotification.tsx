@@ -13,7 +13,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ViewNotification = () => {
   const notificationList = useNotificationListData();
-  const { isLoading, refetchNotificationList } = useDataLoader();
+  const { isNotificationListLoading, refetchNotificationList } = useDataLoader();
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [markAsRead] = useMarkAsReadMutation();
 
@@ -37,10 +37,10 @@ const ViewNotification = () => {
     }
   };
 
-  if (isLoading) {
+  if (isNotificationListLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading} />
+        <SpinnerText spin={isNotificationListLoading} />
       </div>
     );
   }

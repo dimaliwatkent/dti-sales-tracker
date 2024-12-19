@@ -2,38 +2,32 @@ const User = require("../models/user.cjs");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const nodemailer = require("nodemailer");
-const dotenv = require("dotenv");
+
+const { sendEmail } = require("../utils/sendEmail.cjs");
+
+const {
+  uploadToS3,
+  bucketName,
+  bucketRegion,
+} = require("../utils/s3Client.cjs");
+
+const {
+  signUpSchema,
+  signInSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} = require("../zod/authSchema.cjs");
+
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../middleware/auth.cjs");
+
 const crypto = require("node:crypto");
 
-// aws s3
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
+const dotenv = require("dotenv");
 
 dotenv.config();
-
-const bucketName = process.env.S3_BUCKET_NAME;
-const bucketRegion = process.env.S3_BUCKET_REGION;
-const accessKey = process.env.S3_BUCKET_ACCESS_KEY;
-const secretKey = process.env.S3_BUCKET_SECRET_KEY;
-
-const s3 = new S3Client({
-  credentials: {
-    accessKeyId: accessKey,
-    secretAccessKey: secretKey,
-  },
-  region: bucketRegion,
-});
-
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "Internal server error", err: err.message });
-};
 
 // get user info
 function getUserInfo(user) {
@@ -56,24 +50,27 @@ function getUserInfo(user) {
 // Sign Up
 const signUp = async (req, res, next) => {
   try {
-    const { name, email, password, phoneNumber, businessName, document } =
-      req.body;
+    const {
+      name,
+      email,
+      password,
+      phoneNumber,
+      businessName,
+      document,
+      dtiRegistrationNumber,
+    } = req.body;
 
-    if (!name || !email || !password || !phoneNumber || !businessName) {
-      return res.status(400).json({ message: "All fields are required" });
+    const parsedBody = signUpSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(422).json({ message: "Email already exists" });
-    }
-
-    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*.])(?=.{8,})/;
-    if (!passwordRegex.test(password)) {
-      return res.status(400).json({
-        message:
-          "Password must be at least 8 characters long, contain at least one number, and one special character.",
-      });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -84,7 +81,8 @@ const signUp = async (req, res, next) => {
       password: hashedPassword,
       phoneNumber,
       businessName,
-      business: null,
+      businessList: null,
+      dtiRegistrationNumber,
     });
 
     const accessToken = await generateAccessToken({ id: newUser._id });
@@ -99,6 +97,7 @@ const signUp = async (req, res, next) => {
     const fileType = document.split(";")[0].split(":")[1];
     const fileExtension = fileType.split("/")[1];
     const fileName = `registrations/${newUser.name}/${newUser.name}-${newUser._id}.${fileExtension}`;
+
     const params = {
       Bucket: bucketName,
       Key: fileName,
@@ -107,17 +106,12 @@ const signUp = async (req, res, next) => {
     };
 
     try {
-      const command = new PutObjectCommand(params);
-      const result = await s3.send(command);
-      if (result.$metadata.httpStatusCode !== 200) {
-        throw new Error(
-          `Failed to upload document to S3: ${result.$metadata.httpStatusCode}`,
-        );
-      }
-    } catch (err) {
-      return res
-        .status(500)
-        .json({ message: "Failed to upload document to S3" });
+      await uploadToS3(params);
+    } catch (error) {
+      return res.status(500).json({
+        message: "Failed to upload document",
+        error: error.name,
+      });
     }
 
     const docUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
@@ -142,15 +136,24 @@ const signUp = async (req, res, next) => {
       user: getUserInfo(newUser),
       accessToken,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // Sign In
-const signIn = async (req, res) => {
+const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
+    const parsedBody = signInSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
+    }
+
     const existingUser = await User.findOne({ email });
     if (!existingUser) {
       return res.status(422).json({ message: "Invalid email or password" });
@@ -190,13 +193,13 @@ const signIn = async (req, res) => {
       user: getUserInfo(existingUser),
       accessToken,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // Login with Refresh Token
-const loginWithRefreshToken = async (req, res) => {
+const loginWithRefreshToken = async (req, res, next) => {
   try {
     // const refreshToken = req.cookies.refreshToken // Uncomment this line to use cookies
     const { refreshToken } = req.body;
@@ -223,13 +226,13 @@ const loginWithRefreshToken = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Logged in successful", accessToken });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // Sign Out
-const signOut = async (req, res) => {
+const signOut = async (req, res, next) => {
   try {
     const { id } = req.body;
 
@@ -258,43 +261,22 @@ const signOut = async (req, res) => {
     }
 
     return res.status(200).json({ message: "Signed out successfully" });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-async function sendEmail(to, subject, htmlContent) {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: `"Expo Management System" <${process.env.EMAIL}>`,
-      to: to,
-      subject: subject,
-      html: htmlContent,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log("Email sent:", info.response);
-    return info;
-  } catch (error) {
-    console.error("Error sending email:", error.message);
-    throw new Error("Email failed to send");
-  }
-}
-
-const forgotPassword = async (req, res) => {
+const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
+
+    const parsedBody = forgotPasswordSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
+    }
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });
@@ -307,20 +289,16 @@ const forgotPassword = async (req, res) => {
         .json({ message: "User with this email does not exist" });
     }
 
-    // Generate a cryptographically secure pseudo-random number
     const pin = crypto.randomBytes(6).toString("hex").slice(0, 6);
 
-    // Hash and salt the PIN
     const hashedPin = await bcrypt.hash(pin, 10);
 
-    // Set the PIN expiration time
     const pinExpiration = new Date(Date.now() + 10 * 60 * 1000); // PIN expires in 10 minutes
 
     user.resetPin = hashedPin;
     user.resetPinExpiration = pinExpiration;
     await user.save();
 
-    // Send a password reset email with a link to the password reset page
     await sendEmail(
       email,
       "Password Reset Request",
@@ -330,18 +308,22 @@ const forgotPassword = async (req, res) => {
        <p>This code will expire in 10 minutes.</p>`,
     );
 
-    return res.status(200).json({ message: "Reset link sent to your email." });
-  } catch (err) {
-    handleError(res, err);
+    return res.status(200).json({ message: `Reset link is sent to ${email}` });
+  } catch (error) {
+    next(error);
   }
 };
 
-const validateResetPinAndUpdatePassword = async (req, res) => {
+const resetPassword = async (req, res, next) => {
   try {
     const { email, pin, password } = req.body;
 
-    if (!email || !pin || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+    const parsedBody = resetPasswordSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
     }
 
     const user = await User.findOne({ email });
@@ -368,8 +350,8 @@ const validateResetPinAndUpdatePassword = async (req, res) => {
     await user.save();
 
     return res.status(200).json({ message: "Password updated successfully" });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -379,5 +361,5 @@ module.exports = {
   loginWithRefreshToken,
   signOut,
   forgotPassword,
-  validateResetPinAndUpdatePassword,
+  resetPassword,
 };

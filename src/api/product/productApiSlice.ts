@@ -2,20 +2,8 @@ import { apiSlice } from "../apiSlice";
 
 export const productApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getProductList: builder.query({
-      query: () => "/custom-product/",
-    }),
-
-    getArchivedProducts: builder.query({
-      query: () => "/custom-product?isArchived=true",
-    }),
-
     getUserProduct: builder.query({
       query: (userId) => `/custom-product/user/${userId}`,
-    }),
-
-    getProduct: builder.query({
-      query: (id) => `/custom-product/${id}`,
     }),
 
     addProduct: builder.mutation({
@@ -28,10 +16,5 @@ export const productApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const {
-  useGetProductListQuery,
-  useGetArchivedProductsQuery,
-  useGetProductQuery,
-  useGetUserProductQuery,
-  useAddProductMutation,
-} = productApiSlice;
+export const { useGetUserProductQuery, useAddProductMutation } =
+  productApiSlice;

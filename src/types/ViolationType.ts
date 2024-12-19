@@ -1,8 +1,16 @@
+export interface BusinessWithViolation {
+  _id: string;
+  name: string;
+  logo: string;
+  boothNumber: string;
+  violationList: BusinessViolation[];
+}
 export interface BusinessViolation {
   _id: string;
   business: string;
-  violation: Violation;
-  monitor: string;
+  violation: ViolationType;
+  monitor: { name: string };
+  message: string;
   imageProof: string;
   count: number;
   isPaid: boolean;
@@ -13,7 +21,8 @@ export interface BusinessViolation {
   updatedAt: Date;
 }
 
-export interface Violation {
+export interface ViolationType {
+  _id?: string;
   name: string;
   fee: number;
   description: string;

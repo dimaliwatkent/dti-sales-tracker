@@ -2,6 +2,10 @@ import { apiSlice } from "../apiSlice";
 
 export const boothApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    getBooth: builder.query({
+      query: (eventId) => `/event/${eventId}`,
+    }),
+
     updateBooth: builder.mutation({
       query: ({ eventId, boothList }) => ({
         url: `/booth/${eventId}`,
@@ -12,4 +16,4 @@ export const boothApiSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useUpdateBoothMutation } = boothApiSlice;
+export const { useGetBoothQuery, useUpdateBoothMutation } = boothApiSlice;

@@ -1,5 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { User } from "@/types/UserType";
+import { UserType } from "@/types/UserType";
 import { Location } from "react-router-dom";
 
 import { useSelector } from "react-redux";
@@ -13,7 +13,7 @@ const RestrictedRoute = ({
   allowedRoles,
 }: RestrictedRouteProps): JSX.Element => {
 
-  const user: User = useSelector(selectCurrentUser);
+  const user: UserType = useSelector(selectCurrentUser);
 
   const location: Location = useLocation();
 

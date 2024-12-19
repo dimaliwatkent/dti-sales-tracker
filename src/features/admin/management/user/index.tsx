@@ -1,5 +1,4 @@
-import { useUserListData } from "@/hooks/dataHooks";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Input } from "@/components/ui/input";
 
@@ -13,9 +12,25 @@ import {
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import UserCard from "./UserCard";
+import { useGetUserListQuery } from "@/api/user/userApiSlice";
+import { UserType } from "@/types/UserType";
+import SpinnerText from "@/components/SpinnerWithText";
+import Refresh from "@/components/Refresh";
 
 const User = () => {
-  const userList = useUserListData();
+  const [userList, setUserList] = useState<UserType[]>([]);
+  const {
+    data: userListData,
+    isLoading: isUserListLoading,
+    refetch: refetchUserList,
+  } = useGetUserListQuery({});
+
+  useEffect(() => {
+    if (userListData?.userList && userListData?.userList.length > 0) {
+      setUserList(userListData?.userList);
+    }
+  }, [userListData]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
 
@@ -26,6 +41,13 @@ const User = () => {
       (selectedRole !== "all" ? user.role === selectedRole : true),
   );
 
+  if (isUserListLoading) {
+    return (
+      <div>
+        <SpinnerText spin={isUserListLoading} />
+      </div>
+    );
+  }
   return (
     <div>
       <div className="flex py-4 gap-2">
@@ -53,6 +75,7 @@ const User = () => {
             </SelectGroup>
           </SelectContent>
         </Select>
+        <Refresh refetch={refetchUserList} />
       </div>
       <ScrollArea className="w-full h-[calc(100vh-230px)] md:h-[calc(100vh-150px)]">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

@@ -1,4 +1,3 @@
-import { useRecordListData } from "@/hooks/dataHooks";
 import { Calendar as CalendarIcon } from "lucide-react";
 import DashboardCard from "./DashboardCard";
 
@@ -16,101 +15,80 @@ import { useState, useEffect } from "react";
 
 import { formatDateTime } from "@/utils/formatTime";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useUserListData } from "@/hooks/dataHooks";
 import BusinessTable from "./BusinessTable";
 import SpinnerText from "@/components/SpinnerWithText";
 import Refresh from "@/components/Refresh";
-import { Record } from "@/types/RecordType";
-import useDataLoader from "@/hooks/useDataLoader";
-import useInterval from "@/hooks/useInterval";
-import { intervalTime } from "@/constants";
+import {
+  useGetEventByStatusQuery,
+  useGetEventWithBusinessQuery,
+} from "@/api/event/eventApiSlice";
+import { EventWithBusinessType } from "@/types/EventType";
+import { getBusinessData } from "./utils";
 
 const AdminDashboard = () => {
-  const recordList = useRecordListData();
-  const userList = useUserListData();
-  const { isLoading, refetchRecordList } = useDataLoader();
+  const status = "ongoing";
+  const [eventList, setEventList] = useState<EventWithBusinessType[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [selectedEvent, setSelectedEvent] = useState<
+    EventWithBusinessType | undefined
+  >(undefined);
 
-  const [activeEvent, setActiveEvent] = useState<Record | undefined>(undefined);
+  const {
+    data: eventListData,
+    isLoading: isEventListLoading,
+    refetch: refetchEventList,
+  } = useGetEventByStatusQuery(status);
+
+  useEffect(() => {
+    if (eventListData?.eventList && eventListData?.eventList.length > 0) {
+      setEventList(eventListData?.eventList);
+      setSelectedEventId(eventListData?.eventList[0]._id);
+    }
+  }, [eventListData]);
+
+  const {
+    data: eventWithBusinessData,
+    isLoading: isEventWithBusinessLoading,
+    refetch: refetchEventWithBusiness,
+  } = useGetEventWithBusinessQuery(selectedEventId, {
+    skip: selectedEventId === "",
+  });
+
   const [date, setDate] = useState<Date | undefined>(new Date());
 
-  // business chart info
-  const exhibitorCount = activeEvent?.exhibitorCount ?? 0;
-  const applicantCount = activeEvent?.applicantCount ?? 0;
-  const rejectedCount = activeEvent?.rejectedCount;
-
-  // total sales
-  const totalSales = activeEvent?.overallAmount;
-
-  const businessData = [
-    {
-      name: "Participant",
-      value: exhibitorCount,
-      fill: "hsl(var(--chart-1))",
-    },
-    {
-      name: "Not",
-      value: applicantCount,
-      fill: "hsl(var(--chart-2))",
-    },
-    {
-      name: "Rejected",
-      value: rejectedCount,
-      fill: "hsl(var(--chart-3))",
-    },
-  ];
-
-  // user chart info
-  const userData = [
-    {
-      name: "User",
-      value: userList?.filter((user) => user.role === "user")?.length ?? 0,
-      fill: "hsl(var(--chart-1))",
-    },
-    {
-      name: "New User",
-      value: userList?.filter((user) => user.role === "newUser")?.length ?? 0,
-      fill: "hsl(var(--chart-2))",
-    },
-    {
-      name: "Monitor",
-      value: userList?.filter((user) => user.role === "monitor")?.length ?? 0,
-      fill: "hsl(var(--chart-3))",
-    },
-  ];
-
   const handleSelectChange = (value: string) => {
-    const selectedEvent = recordList.find((record) => record.eventId === value);
-    setActiveEvent(selectedEvent);
+    setSelectedEventId(value);
   };
 
   useEffect(() => {
-    if (recordList && recordList.length > 0) {
-      setActiveEvent(recordList[0]);
+    if (eventWithBusinessData?.event) {
+      setSelectedEvent(eventWithBusinessData?.event);
     }
-  }, [recordList]);
+  }, [eventWithBusinessData, selectedEventId]);
 
-  useInterval(() => {
-    refetchRecordList();
-    console.log("interval refetch");
-  }, intervalTime.adminDashboard);
+  useEffect(() => {
+    if (selectedEventId !== "" && refetchEventWithBusiness) {
+      refetchEventWithBusiness();
+    }
+  }, [selectedEventId, refetchEventWithBusiness]);
 
-  if (isLoading) {
+  if (isEventListLoading || isEventWithBusinessLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading} />
+        <SpinnerText spin={isEventWithBusinessLoading} />
       </div>
     );
   }
 
   return (
     <div>
-      {!recordList || recordList.length === 0 ? (
+      {!eventList || eventList.length === 0 ? (
         <div>No ongoing event</div>
       ) : (
         <div>
           <div className="header md:flex justify-between py-8">
             <div className="pb-8 md:pb-0">
-              <p className="text-2xl font-bold">{activeEvent?.eventName}</p>
+              <p className="text-2xl font-bold">{selectedEvent?.title}</p>
             </div>
 
             <div className="flex flex-col md:flex-row items-center gap-4">
@@ -118,36 +96,35 @@ const AdminDashboard = () => {
                 <CalendarIcon size={16} strokeWidth={1.5} />
                 <p>
                   <span className="">
-                    {formatDateTime(activeEvent?.startDate)}
+                    {formatDateTime(selectedEvent?.startDate)}
                   </span>{" "}
                   -{" "}
                   <span className="">
                     {" "}
-                    {formatDateTime(activeEvent?.endDate)}{" "}
+                    {formatDateTime(selectedEvent?.endDate)}{" "}
                   </span>
                 </p>
               </div>
 
               <div className=" w-full md:w-48">
                 <Select
-                  value={activeEvent?.eventId}
-                  defaultValue={recordList[0].eventId}
+                  value={selectedEvent?._id}
                   onValueChange={(value) => handleSelectChange(value)}
                 >
                   <SelectTrigger className="">
                     <SelectValue placeholder="Select Event" />
                   </SelectTrigger>
                   <SelectContent>
-                    {recordList.map((event) => (
-                      <SelectItem key={event.eventId} value={event.eventId}>
-                        {event.eventName}
+                    {eventList.map((event) => (
+                      <SelectItem key={event._id} value={event._id}>
+                        {event.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div>
-                <Refresh refetch={refetchRecordList} />
+                <Refresh refetch={refetchEventList} />
               </div>
             </div>
           </div>
@@ -156,10 +133,10 @@ const AdminDashboard = () => {
               <div className="flex-1">
                 <div className="cards flex flex-col md:flex-row gap-4 ">
                   <div className="business-chart flex-1">
-                    <DashboardCard data={businessData} title={"Businesses"} />
-                  </div>
-                  <div className="user-chart flex-1">
-                    <DashboardCard data={userData} title={"Users"} />
+                    <DashboardCard
+                      data={getBusinessData(selectedEvent)}
+                      title={"Businesses"}
+                    />
                   </div>
                   <div className="totalSale-chart flex-1 ">
                     <Card className="p-6 h-40">
@@ -170,7 +147,10 @@ const AdminDashboard = () => {
                           </p>
                           <div className="text-sm text-primary/70 font-bold ">
                             <p className="text-3xl font bold">
-                              {formatCurrency(totalSales || 0)}
+                              {formatCurrency(
+                                selectedEvent?.totalEventSales.$numberDecimal ||
+                                  0,
+                              )}
                             </p>
                           </div>
                         </div>
@@ -185,7 +165,7 @@ const AdminDashboard = () => {
                 </div>
 
                 <div className="border p-6 rounded-xl">
-                  <BusinessTable activeEvent={activeEvent} />
+                  <BusinessTable selectedEvent={selectedEvent} />
                 </div>
               </div>
               <div className="hidden md:block">

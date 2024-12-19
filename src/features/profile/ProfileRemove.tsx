@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useDeleteProfileMutation } from "@/api/upload/uploadApiSlice";
 import { useToast } from "@/components/ui/use-toast";
-import { User } from "@/types/UserType";
+import { UserType } from "@/types/UserType";
 import useDataLoader from "@/hooks/useDataLoader";
 
 import {
@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface ProfileUploadProps {
-  user: User;
+  user: UserType;
 }
 
 const ProfileRemove = ({ user }: ProfileUploadProps) => {
@@ -37,7 +37,7 @@ const ProfileRemove = ({ user }: ProfileUploadProps) => {
         });
 
         refetchUserData();
-        setOpen(false)
+        setOpen(false);
       }
     } catch (error: unknown) {
       if (error) {

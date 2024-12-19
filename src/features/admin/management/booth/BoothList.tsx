@@ -7,7 +7,7 @@ import { BoothType } from "@/types/BoothType";
 interface BoothListProps {
   booths: BoothType[];
   setBooths: (booths: BoothType[]) => void;
-  businessList: { _id: string; name: string }[];
+  businessList: { _id: string; name: string }[] | undefined;
 }
 
 const BoothList: React.FC<BoothListProps> = ({
@@ -20,7 +20,7 @@ const BoothList: React.FC<BoothListProps> = ({
   };
 
   const getBusinessName = (businessId: string) => {
-    const business = businessList.find(
+    const business = businessList?.find(
       (business) => business._id === businessId,
     );
     return business ? business.name : "";

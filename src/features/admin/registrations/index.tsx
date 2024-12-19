@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -18,24 +18,35 @@ import {
 } from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";
-import { useUserListData } from "@/hooks/dataHooks";
-import { useChangeRoleMutation } from "@/api/user/userApiSlice";
-import { intervalTime } from "@/constants";
-import useDataLoader from "@/hooks/useDataLoader";
+import {
+  useChangeRoleMutation,
+  useGetUserListQuery,
+} from "@/api/user/userApiSlice";
 import { useToast } from "@/components/ui/use-toast";
 
-import useInterval from "@/hooks/useInterval";
 import SpinnerText from "@/components/SpinnerWithText";
 import Refresh from "@/components/Refresh";
+import { UserType } from "@/types/UserType";
 
 const AdminRegistrations = () => {
-  const userList = useUserListData();
+  const [userList, setUserList] = useState<UserType[]>([]);
+  const {
+    data: userListData,
+    isLoading: isUserListLoading,
+    refetch: refetchUserList,
+  } = useGetUserListQuery({});
+
+  useEffect(() => {
+    if (userListData?.userList && userListData?.userList.length > 0) {
+      setUserList(userListData?.userList);
+    }
+  }, [userListData]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  const { isLoading: isDataLoading, refetchUserList } = useDataLoader();
-
-  const [changeRole, { isLoading }] = useChangeRoleMutation();
+  const [changeRole, { isLoading: isChangeRoleLoading }] =
+    useChangeRoleMutation();
   const [selectedRole, setSelectedRole] = useState("newUser");
 
   const filteredUserList = () => {
@@ -46,15 +57,14 @@ const AdminRegistrations = () => {
     );
   };
 
-  useInterval(() => {
+  useEffect(() => {
     refetchUserList();
-    console.log("interval refetch");
-  }, intervalTime.adminRegistration);
+  }, []);
 
-  if (isLoading || isDataLoading) {
+  if (isUserListLoading || isChangeRoleLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading || isDataLoading} />
+        <SpinnerText spin={isUserListLoading || isChangeRoleLoading} />
       </div>
     );
   }
@@ -92,6 +102,7 @@ const AdminRegistrations = () => {
             <TableHead>Email</TableHead>
             <TableHead>Phone Number</TableHead>
             <TableHead>Business Name</TableHead>
+            <TableHead>DTI Registration Number</TableHead>
             <TableHead>Document</TableHead>
             {selectedRole === "newUser" && (
               <div>
@@ -113,6 +124,7 @@ const AdminRegistrations = () => {
                 <TableCell>{user.email}</TableCell>
                 <TableCell>0{user.phoneNumber}</TableCell>
                 <TableCell>{user.businessName}</TableCell>
+                <TableCell>{user.dtiRegistrationNumber}</TableCell>
                 <TableCell>
                   {
                     <div className="text-left bg-primary h-8 w-32 flex items-center justify-center rounded-lg">

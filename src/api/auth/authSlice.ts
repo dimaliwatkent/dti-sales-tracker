@@ -1,11 +1,11 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store.ts";
-import { User } from "@/types/UserType.ts";
+import { UserType } from "@/types/UserType.ts";
 
 const authSlice = createSlice({
   name: "auth",
   initialState: {
-    user: {} as User,
+    user: {} as UserType,
     token: "",
   },
 
@@ -17,7 +17,7 @@ const authSlice = createSlice({
     },
 
     signOut: (state) => {
-      state.user = {} as User;
+      state.user = {} as UserType;
       state.token = "";
     },
   },

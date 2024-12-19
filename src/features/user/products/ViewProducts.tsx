@@ -12,42 +12,35 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-import {
-  useAddProductMutation,
-} from "@/api/product/productApiSlice";
-import { useProductListData, useUserData } from "@/hooks/dataHooks";
-import { CustomProduct } from "@/types/CustomProduct";
+import { Textarea } from "@/components/ui/textarea";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
-import useDataLoader from "@/hooks/useDataLoader";
+import { ProductType } from "@/types/Product";
 
 interface ViewProductsProps {
-  eventId: string;
+  form: any;
 }
 
-const ViewProducts = ({ eventId }: ViewProductsProps) => {
-  const user = useUserData();
-  const customProducts = useProductListData();
-  const {refetchProductList} = useDataLoader()
-
+const ViewProducts = ({ form }: ViewProductsProps) => {
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
-  const [addProduct, { isLoading }] = useAddProductMutation();
-  const [productList, setProductList] = useState<CustomProduct[]>([]);
-  const [newProduct, setNewProduct] = useState<CustomProduct>({
-    user: user._id,
-    event: eventId,
-    name: "",
-    price: { $numberDecimal: "0" },
-  });
+  const [productList, setProductList] = useState<ProductType[]>([]);
 
   useEffect(() => {
-    if (customProducts) {
-      const filteredProducts = customProducts.filter(
-        (product: CustomProduct) => product.event === eventId,
-      );
-      setProductList(filteredProducts);
+    const values = form.getValues().productList;
+    if (Array.isArray(values)) {
+      setProductList(values);
+    } else {
+      console.error("Expected form values to be an array");
     }
-  }, [customProducts, eventId]);
+  }, [form]);
+
+  const [newProduct, setNewProduct] = useState<ProductType>({
+    name: "",
+    description: "",
+    picture: "",
+    price: { $numberDecimal: "" },
+  });
 
   const handleAddProduct = () => {
     if (
@@ -62,25 +55,49 @@ const ViewProducts = ({ eventId }: ViewProductsProps) => {
       return;
     }
 
-    const product = {
-      ...newProduct,
-      user: user._id,
-      event: eventId,
-    };
-    setProductList([...productList, product]);
+    setProductList([...productList, newProduct]);
     setNewProduct({
-      user: user._id,
-      event: eventId,
       name: "",
-      price: { $numberDecimal: "0" },
+      description: "",
+      picture: "",
+      price: { $numberDecimal: "" },
     });
+  };
+
+  const handleImageChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+    index?: number,
+  ) => {
+    if (event.target.files && event.target.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e: ProgressEvent<FileReader>) => {
+        if (e.target && e.target.result) {
+          if (index !== undefined) {
+            setProductList(
+              productList.map((product, i) => {
+                if (i === index) {
+                  return { ...product, picture: e.target?.result as string };
+                }
+                return product;
+              }),
+            );
+          } else {
+            setNewProduct({
+              ...newProduct,
+              picture: e.target.result as string,
+            });
+          }
+        }
+      };
+      reader.readAsDataURL(event.target.files[0]);
+    }
   };
 
   const handleRemoveProduct = (index: number) => {
     setProductList(productList.filter((_, i) => i !== index));
   };
 
-  const handleUpdateProduct = (index: number, product: CustomProduct) => {
+  const handleUpdateProduct = (index: number, product: ProductType) => {
     setProductList(productList.map((p, i) => (i === index ? product : p)));
   };
 
@@ -100,18 +117,8 @@ const ViewProducts = ({ eventId }: ViewProductsProps) => {
     }
 
     try {
-      const result = await addProduct({
-        eventId: eventId,
-        userId: user._id,
-        productList: productList,
-      }).unwrap();
-
-      toast({
-        title: "Success",
-        description: result.message,
-      });
-      refetchProductList()
-      setOpen(false)
+      form.setValue("productList", productList);
+      setOpen(false);
     } catch (error: unknown) {
       if (error) {
         toast({
@@ -128,7 +135,7 @@ const ViewProducts = ({ eventId }: ViewProductsProps) => {
       <div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>Products</Button>
+            <Button>Add / Edit Products</Button>
           </DialogTrigger>
 
           <DialogContent className="">
@@ -139,66 +146,131 @@ const ViewProducts = ({ eventId }: ViewProductsProps) => {
               </DialogDescription>
             </DialogHeader>
             <ScrollArea className="max-h-[calc(100vh-500px)] md:max-h-[calc(100vh-300px)]">
-              {productList.map((product, index) => (
-                <div key={index} className="flex gap-4 mb-4">
+              {Array.isArray(productList) &&
+                productList.map((product, index) => (
+                  <div key={index} className="mb-4 border rounded-lg p-2">
+                    <div className="flex gap-2 mb-4">
+                      <Input
+                        type="text"
+                        value={product.name}
+                        onChange={(e) =>
+                          handleUpdateProduct(index, {
+                            ...product,
+                            name: e.target.value,
+                          })
+                        }
+                        className="w-full"
+                      />
+                      <Input
+                        type="text"
+                        value={product.price.$numberDecimal}
+                        onChange={(e) =>
+                          handleUpdateProduct(index, {
+                            ...product,
+                            price: { $numberDecimal: e.target.value },
+                          })
+                        }
+                        className="w-20"
+                      />
+                    </div>
+
+                    <Textarea
+                      value={product.description}
+                      onChange={(e) =>
+                        handleUpdateProduct(index, {
+                          ...product,
+                          description: e.target.value,
+                        })
+                      }
+                      className="w-full mb-4"
+                    />
+
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleImageChange(e, index)}
+                      className="block w-full text-sm h-12 file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-accent hover:file:bg-primary/50 mb-2"
+                    />
+
+                    {product.picture && (
+                      <div className="my-2">
+                        <img
+                          src={product.picture}
+                          alt={product.name}
+                          className="aspect-square h-20 object-cover rounded-lg"
+                        />
+                      </div>
+                    )}
+                    <Button
+                      onClick={() => handleRemoveProduct(index)}
+                      className="w-full"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ))}
+
+              <div className="mb-4 border rounded-lg p-2">
+                <div className="flex gap-2 mb-4">
                   <Input
                     type="text"
-                    value={product.name}
+                    value={newProduct.name}
                     onChange={(e) =>
-                      handleUpdateProduct(index, {
-                        ...product,
-                        name: e.target.value,
-                      })
+                      setNewProduct({ ...newProduct, name: e.target.value })
                     }
+                    placeholder="Product Name"
                     className="w-full"
                   />
                   <Input
                     type="text"
-                    value={product.price.$numberDecimal}
+                    value={newProduct.price.$numberDecimal}
                     onChange={(e) =>
-                      handleUpdateProduct(index, {
-                        ...product,
+                      setNewProduct({
+                        ...newProduct,
                         price: { $numberDecimal: e.target.value },
                       })
                     }
-                    className="w-full"
+                    placeholder="Price"
+                    className="w-20"
                   />
-                  <Button
-                    onClick={() => handleRemoveProduct(index)}
-                    className=""
-                  >
-                    Remove
-                  </Button>
                 </div>
-              ))}
 
-              <div className="flex gap-4 mb-4">
-                <Input
-                  type="text"
-                  value={newProduct.name}
-                  onChange={(e) =>
-                    setNewProduct({ ...newProduct, name: e.target.value })
-                  }
-                  className="w-full"
-                />
-                <Input
-                  type="text"
-                  value={newProduct.price.$numberDecimal}
+                <Textarea
+                  value={newProduct.description}
                   onChange={(e) =>
                     setNewProduct({
                       ...newProduct,
-                      price: { $numberDecimal: e.target.value },
+                      description: e.target.value,
                     })
                   }
-                  className="w-full"
+                  placeholder="Description"
+                  className="w-full mb-4"
                 />
+
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="block w-full text-sm h-12 file:mr-4 file:px-4 file:py-2 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-accent hover:file:bg-primary/50 mb-2"
+                />
+
+                {newProduct.picture && (
+                  <div className="my-2">
+                    <img
+                      src={newProduct.picture}
+                      alt={newProduct.name}
+                      className="aspect-square h-20 object-cover rounded-lg"
+                    />
+                  </div>
+                )}
+
                 <Button
                   onClick={handleAddProduct}
                   disabled={
                     newProduct.name.trim() === "" ||
                     newProduct.price.$numberDecimal === "0"
                   }
-                  className=""
+                  className="w-full"
                 >
                   Add
                 </Button>
@@ -214,9 +286,7 @@ const ViewProducts = ({ eventId }: ViewProductsProps) => {
                   Cancel
                 </Button>
 
-                <Button onClick={handleSubmit}>
-                  {isLoading ? "Loading..." : "Submit"}
-                </Button>
+                <Button onClick={handleSubmit}>Submit</Button>
               </div>
             </div>
           </DialogContent>

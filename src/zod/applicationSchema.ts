@@ -1,5 +1,14 @@
 import { z } from "zod";
 
+export const productSchema = z.object({
+  name: z.string(),
+  price: z.object({
+    $numberDecimal: z.string(),
+  }),
+  description: z.string(),
+  picture: z.string(),
+});
+
 export const applicationSchema = z.object({
   eventId: z.string(),
   userId: z.string(),
@@ -67,18 +76,17 @@ export const applicationSchema = z.object({
   productLineService: z
     .array(z.string())
     .min(1, { message: "At least one product line or service is required" }),
-  product: z.string().min(1, { message: "Products  is required" }),
   brandName: z.string().min(1, { message: "Brand name is required" }),
   category: z
     .array(z.string())
     .min(1, { message: "At least one category is required" }),
   type: z.string().min(1, { message: "At least one type option is required" }),
+  productList: z
+    .array(z.any())
+    .min(1, { message: "At least one product is required" }),
   assetSize: z
     .string()
     .min(1, { message: "At least one asset size option is required" }),
-  targetSale: z.coerce
-    .number()
-    .gt(0, { message: "Target Sale must be greater than zero" }),
   fulltimeEmployee: z.coerce
     .number()
     .gt(0, { message: "Full-time employees must be greater than zero" }),
@@ -99,7 +107,8 @@ export const applicationSchema = z.object({
   businessNameRegFile: z.string(),
   validIdFile: z.string(),
   menuCopyFile: z.string(),
-  productPhotosFile: z.string(),
+  birPermit: z.string(),
+  mayorPermit: z.string(),
 });
 
 export const editApplicationSchema = applicationSchema

@@ -11,6 +11,5 @@ export { default as ViewEvent } from "./management/events/ViewEvent";
 export { default as Booth } from "./management/booth";
 
 export { default as ViewBusiness } from "./management/business/ViewBusiness";
-export { default as AddBusiness } from "./management/business/AddBusiness.tsx";
 
 export { default as AdminRegistrations } from "./registrations";

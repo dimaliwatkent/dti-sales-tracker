@@ -21,14 +21,12 @@ import {
   ViewEvent,
   Booth,
   ViewBusiness,
-  AddBusiness,
   AdminRegistrations,
 } from "./features/admin";
 
 import {
   Sales,
-  Products,
-  Records,
+  // Records,
   Registration,
   Events,
   ViewEvent as UserViewEvent,
@@ -45,7 +43,11 @@ import {
 
 import ViewNotification from "./features/notification/ViewNotification";
 
-import { EventViolation, ViewViolation } from "./features/violation";
+import {
+  EventViolation,
+  EventViolationList,
+  ViewViolation,
+} from "./features/violation";
 
 import DataLoader from "./components/DataLoader";
 
@@ -80,15 +82,15 @@ function App() {
                 element={<AddEvent />}
               />
               <Route
-                path="/admin/management/edit-event"
+                path="/admin/management/edit-event/:id"
                 element={<EditEvent />}
               />
               <Route
-                path="/admin/management/view-event"
+                path="/admin/management/view-event/:id"
                 element={<ViewEvent />}
               />
               <Route
-                path="/admin/management/view-event/booth"
+                path="/admin/management/view-event/booth/:id"
                 element={<Booth />}
               />
               <Route
@@ -97,22 +99,22 @@ function App() {
               />
 
               <Route
-                path="/admin/management/view-business"
+                path="/admin/management/view-business/:id/:type"
                 element={<ViewBusiness />}
               />
 
               <Route
-                path="/admin/management/add-business"
-                element={<AddBusiness />}
+                path="/admin/management/violation/event-violation/:id"
+                element={<EventViolationList />}
               />
 
               <Route
-                path="/admin/management/violation/view-violation"
+                path="/admin/management/violation/view-violation/:id"
                 element={<ViewViolation />}
               />
 
               <Route
-                path="/admin/management/violation"
+                path="/admin/management/violation/:id"
                 element={<EventViolation />}
               />
 
@@ -131,21 +133,29 @@ function App() {
           <Route element={<RestrictedRoute allowedRoles={["user"]} />}>
             <Route element={<Layout />}>
               <Route path="/sales" element={<Sales />} />
+              {/*
               <Route path="/records" element={<Records />} />
-              <Route path="/products" element={<Products />} />
+              */}
               <Route path="/events" element={<Events />} />
-              <Route path="/events/view-event" element={<UserViewEvent />} />
-              <Route path="/events/application" element={<ApplicationForm />} />
               <Route
-                path="/events/business/view-business"
+                path="/events/view-event/:id"
+                element={<UserViewEvent />}
+              />
+              <Route
+                path="/events/business/view-business/:id/:type"
                 element={<ViewBusiness />}
               />
               <Route
-                path="/events/violation/view-violation"
+                path="/events/violation/view-violation/:id"
                 element={<ViewViolation />}
               />
+
               <Route
-                path="/events/edit-application"
+                path="/events/application/:id"
+                element={<ApplicationForm />}
+              />
+              <Route
+                path="/events/edit-application/:id"
                 element={<EditApplicationForm />}
               />
 
@@ -165,11 +175,11 @@ function App() {
             <Route element={<Layout />}>
               <Route path="/monitor/events" element={<MonitorEvents />} />
               <Route
-                path="/monitor/events/view-event"
+                path="/monitor/events/view-event/:id"
                 element={<MonitorViewEvent />}
               />
               <Route
-                path="/monitor/events/view-business"
+                path="/monitor/events/view-business/:businessId/:eventId"
                 element={<MonitorViewBusiness />}
               />
               <Route path="/monitor/info" element={<MonitorInfo />} />
@@ -178,6 +188,8 @@ function App() {
                 path="/monitor/notification/view-notification"
                 element={<ViewNotification />}
               />
+
+              <Route path="/monitor/profile" element={<Profile />} />
             </Route>
           </Route>
 

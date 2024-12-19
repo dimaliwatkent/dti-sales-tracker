@@ -20,7 +20,8 @@ import { Spinner } from "@/components/ui/spinner";
 
 export default function NotificationButton() {
   const notificationList = useNotificationListData();
-  const { isLoading, refetchNotificationList } = useDataLoader();
+  const { isNotificationListLoading, refetchNotificationList } =
+    useDataLoader();
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [hasUnread, setHasUnread] = useState(false);
   const navigate = useNavigate();
@@ -61,10 +62,10 @@ export default function NotificationButton() {
     dispatch(setNotification(notification));
   };
 
-  if (isLoading) {
+  if (isNotificationListLoading) {
     return (
       <div>
-        <Spinner show={isLoading} />
+        <Spinner show={isNotificationListLoading} />
       </div>
     );
   }

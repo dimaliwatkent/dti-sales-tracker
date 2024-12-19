@@ -7,7 +7,9 @@ const errorHandler = (statusCode, message) => {
 
 const globalErrorHandler = (error, req, res, next) => {
   console.error(error);
-  res.status(error.statusCode || 500).json({ message: error.message });
+  res
+    .status(error.statusCode || 500)
+    .json({ message: "Internal Server Error", error: error.message });
 };
 
 module.exports = { errorHandler, globalErrorHandler };

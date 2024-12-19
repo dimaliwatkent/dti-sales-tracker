@@ -9,25 +9,20 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Business } from "@/types/BusinessType";
+import { BusinessType } from "@/types/BusinessType";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useUpdateStatusMutation } from "@/api/business/businessApiSlice";
-import useDataLoader from "@/hooks/useDataLoader";
-import { setEvent } from "@/api/event/eventSlice";
-import { useDispatch } from "react-redux";
 import SpinnerText from "@/components/SpinnerWithText";
 
 interface ApproveBusinessProps {
-  business: Business;
+  business: BusinessType;
 }
 
 const ApproveBusiness = ({ business }: ApproveBusinessProps) => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  const dispatch = useDispatch();
   const [updateStatus, { isLoading }] = useUpdateStatusMutation();
-  const { isLoading: isLoadingRefetch, refetchEventList } = useDataLoader();
 
   const handleSubmit = async () => {
     try {
@@ -43,8 +38,6 @@ const ApproveBusiness = ({ business }: ApproveBusinessProps) => {
         description: result.message,
       });
 
-      refetchEventList();
-      dispatch(setEvent(result.event));
       setOpen(false);
     } catch (error: unknown) {
       if (error) {
@@ -57,10 +50,10 @@ const ApproveBusiness = ({ business }: ApproveBusinessProps) => {
     }
   };
 
-  if (isLoading || isLoadingRefetch) {
+  if (isLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading || isLoadingRefetch} />
+        <SpinnerText spin={isLoading} />
       </div>
     );
   }
@@ -73,12 +66,13 @@ const ApproveBusiness = ({ business }: ApproveBusinessProps) => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>
-              Are you sure you want to approve {business.name} application
-            </DialogTitle>
+            <DialogTitle>Are you sure?</DialogTitle>
           </DialogHeader>
 
-          <DialogDescription>This can't be Undone</DialogDescription>
+          <DialogDescription>
+            This will approve <span className="font-bold">{business.name}</span>{" "}
+            application
+          </DialogDescription>
           <DialogFooter>
             <Button
               type="button"

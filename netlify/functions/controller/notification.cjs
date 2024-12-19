@@ -10,7 +10,6 @@ const Notification = require("../models/notification.cjs");
 
 const addNotification = async (notificationData) => {
   try {
-    console.log("during");
     const notification = new Notification(notificationData);
     await notification.save();
     return notification;
@@ -19,50 +18,37 @@ const addNotification = async (notificationData) => {
   }
 };
 
-const createNotification = async (req, res) => {
+const createNotification = async (req, res, next) => {
   try {
     const notification = new Notification(req.body);
     await notification.save();
     res.status(201).json({ notification });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    next(error);
   }
 };
 
-const getNotifications = async (req, res) => {
+const getNotifications = async (req, res, next) => {
   try {
     const notifications = await Notification.find({
       userId: req.params.userId,
     });
     res.json({ notificationList: notifications });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    next(error);
   }
 };
 
-const updateNotification = async (req, res) => {
-  try {
-    const notification = await Notification.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true },
-    );
-    res.json({ notification });
-  } catch (error) {
-    res.status(404).json({ message: error.message });
-  }
-};
-
-const deleteNotification = async (req, res) => {
+const deleteNotification = async (req, res, next) => {
   try {
     await Notification.findByIdAndDelete(req.params.id);
     res.json({ message: "Notification deleted successfully" });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    next(error);
   }
 };
 
-const markAsRead = async (req, res) => {
+const markAsRead = async (req, res, next) => {
   try {
     const notification = await Notification.findByIdAndUpdate(
       req.params.id,
@@ -71,7 +57,7 @@ const markAsRead = async (req, res) => {
     );
     res.json({ notification });
   } catch (error) {
-    res.status(404).json({ message: error.message });
+    next(error);
   }
 };
 
@@ -79,7 +65,6 @@ module.exports = {
   addNotification,
   createNotification,
   getNotifications,
-  updateNotification,
   deleteNotification,
   markAsRead,
 };

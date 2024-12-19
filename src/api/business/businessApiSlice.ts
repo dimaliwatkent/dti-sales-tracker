@@ -5,6 +5,7 @@ export const businessApiSlice = apiSlice.injectEndpoints({
     getBusinessList: builder.query({
       query: () => "/business/",
     }),
+
     getBusiness: builder.query({
       query: (id) => `/business/${id}`,
     }),
@@ -32,13 +33,16 @@ export const businessApiSlice = apiSlice.injectEndpoints({
         body: { applicationStatus: status, statusMessage: message },
       }),
     }),
+    getBusinessProductList: builder.query({
+      query: (id) => `/business/product/${id}`,
+    }),
   }),
 });
 
 export const {
-  useGetBusinessListQuery,
   useGetBusinessQuery,
   useAddBusinessMutation,
   useEditBusinessMutation,
   useUpdateStatusMutation,
+  useGetBusinessProductListQuery,
 } = businessApiSlice;

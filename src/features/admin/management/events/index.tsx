@@ -1,7 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { setEvent } from "@/api/event/eventSlice";
-import { useDispatch } from "react-redux";
-import { Event } from "@/types/EventType";
+import { EventType } from "@/types/EventType";
 import { eventStatusMap } from "@/constants";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -19,32 +17,49 @@ import {
 } from "@/components/ui/select";
 
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
-import { useEventListData } from "@/hooks/dataHooks";
+import { useEffect, useState } from "react";
 import { formatDateTime } from "@/utils/formatTime";
+import { useGetEventListQuery } from "@/api/event/eventApiSlice";
+import SpinnerText from "@/components/SpinnerWithText";
+import Refresh from "@/components/Refresh";
 
 const Events = (): JSX.Element => {
-  const eventList = useEventListData();
+  const [eventList, setEventList] = useState<EventType[]>([]);
+  const {
+    data: eventListData,
+    isLoading: isEventListLoading,
+    refetch: refetchEventList,
+  } = useGetEventListQuery({});
+
+  useEffect(() => {
+    if (eventListData?.eventList) {
+      setEventList(eventListData?.eventList);
+    }
+  }, [eventListData]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const handleEventClick = (event: Event) => {
-    navigate("/admin/management/view-event");
-    dispatch(setEvent(event));
+  const handleEventClick = (id: string) => {
+    navigate(`/admin/management/view-event/${id}`);
   };
 
-  const handleBoothClick = (event: Event) => {
-    navigate("/admin/management/view-event/booth");
-    dispatch(setEvent(event));
+  const handleBoothClick = (id: string) => {
+    navigate(`/admin/management/view-event/booth/${id}`);
   };
 
-  const handleViolationClick = (event: Event) => {
-    navigate("/admin/management/violation");
-    dispatch(setEvent(event));
+  const handleViolationClick = (id: string) => {
+    navigate(`/admin/management/violation/${id}`);
+  };
+
+  const handleEventViolationClick = (id: string) => {
+    navigate(`/admin/management/violation/event-violation/${id}`);
+  };
+
+  const handleAddEvent = () => {
+    navigate("/admin/management/add-event");
   };
 
   const filteredEventList = eventList.filter(
@@ -52,6 +67,18 @@ const Events = (): JSX.Element => {
       event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
       (selectedStatus !== "all" ? event.status === selectedStatus : true),
   );
+
+  useEffect(() => {
+    refetchEventList();
+  }, []);
+
+  if (isEventListLoading) {
+    return (
+      <div>
+        <SpinnerText spin={isEventListLoading} />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -82,16 +109,15 @@ const Events = (): JSX.Element => {
             </SelectGroup>
           </SelectContent>
         </Select>
-        <Button onClick={() => navigate("/admin/management/add-event")}>
-          Add Event
-        </Button>
+        <Refresh refetch={refetchEventList} />
+        <Button onClick={handleAddEvent}>Add Event</Button>
       </div>
       <ScrollArea className="w-full h-[calc(100vh-230px)] md:h-[calc(100vh-150px)]">
         <div className="grid grid-cols-1 gap-4 pb-32">
           {!filteredEventList || filteredEventList.length === 0 ? (
             <div>Currently no events</div>
           ) : (
-            filteredEventList.map((event: Event) => (
+            filteredEventList.map((event: EventType) => (
               <div key={event._id}>
                 <Card className="p-6 space-y-3">
                   <div className="flex justify-between items-center">
@@ -119,14 +145,24 @@ const Events = (): JSX.Element => {
                     {event.location}
                   </div>
                   <div className="flex gap-2">
-                    <Button onClick={() => handleEventClick(event)}>
+                    <p className="font-bold">Location Type</p>
+                    {event?.isLocal ? "Local" : "Non-Local"}
+                  </div>
+                  <div className="flex gap-2">
+                    <Button onClick={() => handleEventClick(event._id)}>
                       View
                     </Button>
-                    <Button onClick={() => handleBoothClick(event)}>
+                    <Button onClick={() => handleBoothClick(event._id)}>
                       Booths
                     </Button>
 
-                    <Button onClick={() => handleViolationClick(event)}>
+                    <Button onClick={() => handleViolationClick(event._id)}>
+                      Violators
+                    </Button>
+
+                    <Button
+                      onClick={() => handleEventViolationClick(event._id)}
+                    >
                       Violations
                     </Button>
                   </div>

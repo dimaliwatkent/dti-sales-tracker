@@ -4,13 +4,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -26,36 +25,53 @@ import {
 } from "@/components/ui/select";
 
 import { addEventSchema } from "@/zod/eventSchema";
-import { useEventData } from "@/hooks/dataHooks";
-import { useEditEventMutation } from "@/api/event/eventApiSlice";
-import useDataLoader from "@/hooks/useDataLoader";
+import {
+  useEditEventMutation,
+  useGetEventQuery,
+} from "@/api/event/eventApiSlice";
 import SpinnerText from "@/components/SpinnerWithText";
+import { EventType } from "@/types/EventType";
 
 const EditEvent = () => {
+  const { id } = useParams();
+  const [event, setEvent] = useState<EventType>();
+
+  const { data: eventData, isLoading: isEventLoading } = useGetEventQuery(id);
+
+  useEffect(() => {
+    if (eventData?.event) {
+      setEvent(eventData?.event);
+    }
+  }, [eventData]);
+
   const { toast } = useToast();
 
-  const event = useEventData();
   const [editEvent, { isLoading }] = useEditEventMutation();
-  const { isLoading: isLoadingRefetch, refetchEventList } = useDataLoader();
 
-  const [businessIdList, setBusinessIdList] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const form = useForm<z.infer<typeof addEventSchema>>({
     resolver: zodResolver(addEventSchema),
-    defaultValues: {
-      title: event.title,
-      location: event.location,
-      startDate: event.startDate.split("T")[0],
-      endDate: event.endDate.split("T")[0],
-      applicationStart: event.applicationStart.split("T")[0],
-      applicationEnd: event.applicationEnd.split("T")[0],
-      status: event.status,
-      businessList: event.businessList.map((business) => business._id),
-      booth: [],
-    },
   });
 
-  const navigate = useNavigate();
+  useEffect(() => {
+    if (event) {
+      form.reset({
+        title: eventData.event.title,
+        location: eventData.event.location,
+        startDate: eventData.event.startDate.split("T")[0],
+        endDate: eventData.event.endDate.split("T")[0],
+        applicationStart: eventData.event.applicationStart.split("T")[0],
+        applicationEnd: eventData.event.applicationEnd.split("T")[0],
+        status: eventData.event.status,
+        isLocal: eventData.event.isLocal,
+        boothList: eventData.event.boothList,
+        businessList: eventData.event.businessList,
+        applicantList: eventData.event.applicantList,
+        documentList: eventData.event.documentList,
+      });
+    }
+  }, [event, form]);
 
   const onSubmit = async (data: z.infer<typeof addEventSchema>) => {
     if (isFormDirty(form)) {
@@ -69,10 +85,10 @@ const EditEvent = () => {
       }
 
       try {
-        const updatedFormData = { ...data, businessList: businessIdList };
+        const updatedFormData = { ...data };
 
         const result = await editEvent({
-          id: event._id,
+          id: event?._id,
           event: updatedFormData,
         }).unwrap();
 
@@ -82,7 +98,6 @@ const EditEvent = () => {
           description: result.message,
         });
 
-        refetchEventList();
         navigate(-1);
       } catch (error: unknown) {
         if (error) {
@@ -104,16 +119,11 @@ const EditEvent = () => {
   const isFormDirty = (form: any) => {
     return Object.keys(form.formState.dirtyFields).length > 0;
   };
-  useEffect(() => {
-    if (event.businessList) {
-      setBusinessIdList(event.businessList.map((business) => business._id));
-    }
-  }, []);
 
-  if (isLoading || isLoadingRefetch) {
+  if (isLoading || isEventLoading || !eventData.event) {
     return (
       <div>
-        <SpinnerText spin={isLoading || isLoadingRefetch} />
+        <SpinnerText spin={isLoading || isEventLoading || !eventData.event} />
       </div>
     );
   }
@@ -123,146 +133,176 @@ const EditEvent = () => {
       <div>
         <p className="text-3xl font-bold mb-6">Edit Event</p>
       </div>
-      <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="space-y-2 w-full"
-        >
-          <FormField
-            control={form.control}
-            name="title"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Title</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="location"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Location</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="startDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Start Date</FormLabel>
-                <FormControl>
-                  <Input placeholder="" type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="endDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>End Date</FormLabel>
-                <FormControl>
-                  <Input placeholder="" type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="applicationStart"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Application Start Date</FormLabel>
-                <FormControl>
-                  <Input placeholder="" type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="applicationEnd"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Application End Date</FormLabel>
-                <FormControl>
-                  <Input placeholder="" type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name="status"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Status</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
+      {event && (
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="space-y-2 w-full"
+          >
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Title</FormLabel>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
+                    <Input {...field} />
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="applicationOpen" disabled>
-                      Open for Application
-                    </SelectItem>
-                    <SelectItem value="upcoming" disabled>
-                      Upcoming
-                    </SelectItem>
-                    <SelectItem value="ongoing" disabled>
-                      Ongoing
-                    </SelectItem>
-                    <SelectItem value="completed" disabled>
-                      Completed
-                    </SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
-                    <SelectItem value="postponed">Postponed</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <div className="flex gap-4 w-full justify-end items-center">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => navigate(-1)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" className="my-2">
-              Submit
-            </Button>
-          </div>
-        </form>
-      </Form>
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="isLocal"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location Type</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(value === "local")}
+                    defaultValue={event?.isLocal ? "local" : "non-local"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a Location Type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem key="local" value="local">
+                        Local
+                      </SelectItem>
+                      <SelectItem key="non-local" value="non-local">
+                        Non-Local
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="startDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Start Date</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="endDate"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>End Date</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="applicationStart"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Application Start Date</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="applicationEnd"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Application End Date</FormLabel>
+                  <FormControl>
+                    <Input placeholder="" type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="status"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Status</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="applicationOpen" disabled>
+                        Open for Application
+                      </SelectItem>
+                      <SelectItem value="upcoming" disabled>
+                        Upcoming
+                      </SelectItem>
+                      <SelectItem value="ongoing" disabled>
+                        Ongoing
+                      </SelectItem>
+                      <SelectItem value="completed" disabled>
+                        Completed
+                      </SelectItem>
+                      <SelectItem value="cancelled">Cancelled</SelectItem>
+                      <SelectItem value="postponed">Postponed</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex gap-4 w-full justify-end items-center">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="my-2">
+                Submit
+              </Button>
+            </div>
+          </form>
+        </Form>
+      )}
     </div>
   );
 };

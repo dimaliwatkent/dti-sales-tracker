@@ -15,7 +15,7 @@ interface BoothAddBusinessProps {
   selectedBooth: string;
   booths: BoothType[];
   setBooths: (booths: BoothType[]) => void;
-  businessList: BusinessBoothType[];
+  businessList: BusinessBoothType[] | undefined;
 }
 
 const BoothAddBusiness = ({
@@ -53,8 +53,9 @@ const BoothAddBusiness = ({
             </DialogDescription>
           </DialogHeader>
           <ul>
-            {businessList
-              .filter((business) => !assignedBusinessIds.includes(business._id))
+            {businessList?.filter(
+                (business) => !assignedBusinessIds.includes(business._id),
+              )
               .map((business) => (
                 <div
                   key={business._id}

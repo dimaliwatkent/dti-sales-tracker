@@ -1,31 +1,40 @@
 import { useEffect, useState } from "react";
 import BoothForm from "./BoothForm";
 import BoothList from "./BoothList";
-import { useEventData } from "@/hooks/dataHooks";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
-import { useUpdateBoothMutation } from "@/api/booth/boothApiSlice";
-import { BoothType } from "@/types/BoothType";
-import useDataLoader from "@/hooks/useDataLoader";
+import {
+  useGetBoothQuery,
+  useUpdateBoothMutation,
+} from "@/api/booth/boothApiSlice";
+import { BoothType, EventBoothType } from "@/types/BoothType";
+
+import { useParams } from "react-router-dom";
+import SpinnerText from "@/components/SpinnerWithText";
 
 const Booth = () => {
-  const event = useEventData();
+  const { id } = useParams();
+
+  const { data: eventBoothData, isLoading: isEventBoothLoading } =
+    useGetBoothQuery(id);
+
+  const [eventBooth, setEventBooth] = useState<EventBoothType | undefined>(
+    undefined,
+  );
   const [booths, setBooths] = useState<BoothType[]>([]);
   const { toast } = useToast();
   const [updateBooth, { isLoading }] = useUpdateBoothMutation();
-  const { refetchEventList } = useDataLoader();
 
   const handleSaveChanges = async () => {
     try {
       const result = await updateBooth({
-        eventId: event._id,
+        eventId: id,
         boothList: booths,
       }).unwrap();
       toast({
         title: "Success",
         description: result.message,
       });
-      refetchEventList();
     } catch (error: unknown) {
       if (error) {
         toast({
@@ -38,15 +47,24 @@ const Booth = () => {
   };
 
   useEffect(() => {
-    if (event.boothList) {
-      setBooths(event.boothList);
+    if (eventBoothData?.event) {
+      setEventBooth(eventBoothData?.event);
+      setBooths(eventBoothData?.event.boothList);
     }
-  }, [event.boothList]);
+  }, [eventBoothData]);
+
+  if (isEventBoothLoading) {
+    return (
+      <div>
+        <SpinnerText spin={isEventBoothLoading} />
+      </div>
+    );
+  }
 
   return (
     <div>
       <div className="flex items-end justify-between my-6">
-        <p className="text-3xl font-bold ">{event.title} Booths</p>
+        <p className="text-3xl font-bold ">{eventBooth?.title} Booths</p>
         <Button disabled={isLoading} onClick={handleSaveChanges}>
           {isLoading ? "Saving..." : "Save Changes"}
         </Button>
@@ -60,7 +78,7 @@ const Booth = () => {
         <BoothList
           booths={booths}
           setBooths={setBooths}
-          businessList={event.businessList}
+          businessList={eventBooth?.businessList}
         />
         <BoothForm booths={booths} setBooths={setBooths} />
       </div>

@@ -8,8 +8,8 @@ const ProcessCard = ({ currentStep }: ProcessCardProps) => {
   const steps = ["Apply", "Wait for Review", "Wait to Start"];
 
   return (
-    <div className="flex flex-col items-center justify-center">
-      <div className="flex items-center mb-8">
+    <div className="flex flex-col items-center justify-center relative">
+      <div className="flex items-center mb-8 ">
         {steps.map((_, index) => (
           <React.Fragment key={index}>
             {index > 0 && (

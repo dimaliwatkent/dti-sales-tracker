@@ -1,24 +1,45 @@
-import { setActiveBusiness } from "@/api/business/businessSlice";
+import { useGetBusinessListViolationQuery } from "@/api/violation/violationApiSlice";
+import SpinnerText from "@/components/SpinnerWithText";
 import { Button } from "@/components/ui/button";
-import { useEventData } from "@/hooks/dataHooks";
-import { Business } from "@/types/BusinessType";
-import { useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { BusinessListViolationType } from "@/types/BusinessType";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 
 const EventViolation = () => {
-  const event = useEventData();
-  const businessList = event.businessList;
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const { id } = useParams();
 
-  const handleViolationClick = (business: Business) => {
-    navigate("/admin/management/violation/view-violation");
-    dispatch(setActiveBusiness(business));
+  const {
+    data: businessListData,
+    isLoading: isBusinessListLoading,
+    // refetch: refetchBusinessList,
+  } = useGetBusinessListViolationQuery(id);
+
+  const [businessList, setBusinessList] = useState<BusinessListViolationType[]>(
+    [],
+  );
+
+  useEffect(() => {
+    if (
+      businessListData?.businessList &&
+      businessListData?.businessList.length > 0
+    ) {
+      setBusinessList(businessListData?.businessList);
+    }
+  }, [businessListData]);
+
+  const navigate = useNavigate();
+
+  const handleViolationClick = (id: string) => {
+    navigate(`/admin/management/violation/view-violation/${id}`);
   };
 
-  const businessesWithViolations = businessList.filter(
-    (business) => business.violationList && business.violationList.length > 0,
-  );
+  if (isBusinessListLoading) {
+    return (
+      <div>
+        <SpinnerText spin={isBusinessListLoading} />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -26,8 +47,8 @@ const EventViolation = () => {
         <p className="text-xl font-bold pb-6">Violators</p>
       </div>
       <div className="flex flex-col gap-4">
-        {businessesWithViolations && businessesWithViolations.length > 0 ? (
-          businessesWithViolations.map((business) => (
+        {businessList && businessList.length > 0 ? (
+          businessList.map((business) => (
             <div key={business._id} className="border p-6 rounded-lg">
               <div className="space-y-4">
                 <p className="text-lg font-bold">{business.name}</p>
@@ -35,7 +56,7 @@ const EventViolation = () => {
                 <p className="">
                   Number of Violations: {business.violationList.length}
                 </p>
-                <Button onClick={() => handleViolationClick(business)}>
+                <Button onClick={() => handleViolationClick(business._id)}>
                   Violations
                 </Button>
               </div>

@@ -8,14 +8,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Business } from "@/types/BusinessType";
+import { BusinessType } from "@/types/BusinessType";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useUpdateStatusMutation } from "@/api/business/businessApiSlice";
-import useDataLoader from "@/hooks/useDataLoader";
-import { setEvent } from "@/api/event/eventSlice";
-import { useDispatch } from "react-redux";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -43,15 +40,13 @@ const FormSchema = z.object({
 });
 
 interface RejectBusinessProps {
-  business: Business;
+  business: BusinessType;
 }
 
 const RejectBusiness = ({ business }: RejectBusinessProps) => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  const dispatch = useDispatch();
   const [updateStatus, { isLoading }] = useUpdateStatusMutation();
-  const { isLoading: isLoadingRefetch, refetchEventList } = useDataLoader();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -71,8 +66,6 @@ const RejectBusiness = ({ business }: RejectBusinessProps) => {
         description: result.message,
       });
 
-      refetchEventList();
-      dispatch(setEvent(result.event));
       setOpen(false);
     } catch (error: unknown) {
       if (error) {
@@ -85,10 +78,10 @@ const RejectBusiness = ({ business }: RejectBusinessProps) => {
     }
   };
 
-  if (isLoading || isLoadingRefetch) {
+  if (isLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading || isLoadingRefetch} />
+        <SpinnerText spin={isLoading} />
       </div>
     );
   }
@@ -103,15 +96,16 @@ const RejectBusiness = ({ business }: RejectBusinessProps) => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>
-              Are you sure you want to REJECT {business.name} application
-            </DialogTitle>
-            <DialogDescription>This can't be Undone</DialogDescription>
+            <DialogTitle>Are you sure?</DialogTitle>
+            <DialogDescription>
+              This will reject{" "}
+              <span className="font-bold">{business.name}</span> application
+            </DialogDescription>
             <div className="py-4">
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="w-2/3 space-y-6"
+                  className="space-y-6"
                 >
                   <FormField
                     control={form.control}

@@ -1,7 +1,7 @@
 import { roleMap } from "@/constants";
 import { Separator } from "@/components/ui/separator";
 import { Mail, Phone } from "lucide-react";
-import { User } from "@/types/UserType";
+import { UserType } from "@/types/UserType";
 import { useEffect, useState } from "react";
 
 interface ProfileSectionProps {
@@ -10,7 +10,7 @@ interface ProfileSectionProps {
 }
 
 interface UserProfileProps {
-  user: User;
+  user: UserType;
 }
 
 const ProfileSection = ({ value, icon }: ProfileSectionProps) => {

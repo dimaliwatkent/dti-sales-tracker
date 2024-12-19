@@ -1,36 +1,136 @@
-const Event = require("../models/event.cjs");
 const User = require("../models/user.cjs");
+const Event = require("../models/event.cjs");
+const Sale = require("../models/sale.cjs");
 const mongoose = require("mongoose");
+const { addEventSchema } = require("../zod/eventSchema.cjs");
 
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
+// status "applicationOpen", "upcoming", "ongoing", "completed", "cancelled", "postponed",
+const getEventByStatus = async (req, res, next) => {
+  try {
+    const { status } = req.params;
+
+    if (!status) {
+      return res.status(400).send({ message: "Status is required" });
+    }
+
+    let events;
+    if (status.toLowerCase() === "all") {
+      events = await Event.find()
+        .select("title _id startDate endDate status")
+        .exec();
+    } else {
+      events = await Event.find({ status })
+        .select("title _id startDate endDate status")
+        .exec();
+    }
+
+    if (!events || events.length === 0) {
+      return res.status(404).send({ message: "No events found" });
+    }
+
+    return res
+      .status(200)
+      .json({ message: "Events retrieved successfully", eventList: events });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getEventWithBusiness = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    const event = await Event.findById(id)
+      .populate({
+        path: "businessList",
+        select: "_id name",
+      })
+      .populate({ path: "applicantList", select: "applicationStatus" });
+
+    if (!event) {
+      return res.status(404).json({ message: "No event found" });
+    }
+
+    const totalSales = await Sale.aggregate([
+      {
+        $match: {
+          event: new mongoose.Types.ObjectId(id),
+        },
+      },
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: "$totalAmount" },
+        },
+      },
+    ]);
+
+    const businessListWithTotalSales = await Promise.all(
+      event.businessList.map(async (business) => {
+        const totalSales = await Sale.aggregate([
+          {
+            $match: {
+              business: new mongoose.Types.ObjectId(business._id),
+              event: new mongoose.Types.ObjectId(id),
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              totalSales: { $sum: "$totalAmount" },
+            },
+          },
+        ]);
+        return {
+          _id: business._id,
+          name: business.name,
+          totalSales: totalSales[0] ? totalSales[0].totalSales : 0,
+        };
+      }),
+    );
+
+    // for getting business count
+    const rejectedList = event.applicantList.filter(
+      (business) => business.applicationStatus.toLowerCase() === "rejected",
+    );
+    const applicantList = event.applicantList.filter((business) =>
+      ["forcompletion", "pending", "complied"].includes(
+        business.applicationStatus.toLowerCase(),
+      ),
+    );
+
+    const eventData = {
+      _id: event._id,
+      title: event.title,
+      startDate: event.startDate,
+      endDate: event.endDate,
+      totalEventSales: totalSales[0] ? totalSales[0].totalSales : 0,
+      businessList: businessListWithTotalSales,
+      businessCount: {
+        applicant: applicantList.length,
+        rejected: rejectedList.length,
+      },
+    };
+
+    return res
+      .status(200)
+      .json({ message: "Events retrieved successfully", event: eventData });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // Get all events
 // GET /event - return unarchived events
 // GET /event?isArchived=true
-const getEventList = async (req, res) => {
+const getEventList = async (req, res, next) => {
   try {
     const isArchived = req.query.isArchived === "true";
-    let events = await Event.find({ isArchived })
-      .populate({
-        path: "businessList",
-        populate: {
-          path: "user",
-          model: "user",
-        },
-      })
-      .populate({
-        path: "applicantList",
-        populate: {
-          path: "user",
-          model: "user",
-        },
-      })
-      .exec();
+    let events = await Event.find({ isArchived }).exec();
     events = await Promise.all(
       events.map(async (event) => {
         const now = new Date(
@@ -75,92 +175,13 @@ const getEventList = async (req, res) => {
     }
     return res
       .status(200)
-      .json({ message: "Events retrieved successfully", event: events });
-  } catch (err) {
-    handleError(res, err);
+      .json({ message: "Events retrieved successfully", eventList: events });
+  } catch (error) {
+    next(error);
   }
 };
 
-const getUserEventList = async (req, res) => {
-  try {
-    const { userId } = req.params;
-
-    if (!userId || !mongoose.isValidObjectId(userId)) {
-      return res.status(400).json({ message: "Invalid user ID" });
-    }
-
-    const user = await User.findById(userId)
-      .populate({
-        path: "businessList",
-        populate: {
-          path: "violationList",
-          model: "businessViolation",
-        },
-      })
-      .exec();
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    const businessList = user.businessList;
-
-    const eventList = await Event.find().exec();
-    if (!eventList) {
-      return res.status(404).json({ message: "No event found" });
-    }
-
-    const userEventList = eventList
-      .map((event) => {
-        const business = businessList.find(
-          (business) => business.event.toString() === event._id.toString(),
-        );
-        if (business) {
-          return { ...event.toObject(), business };
-        }
-        return event;
-      })
-      .filter((event) => event.business);
-
-    const openEventList = eventList.filter(
-      (event) => event.status === "applicationOpen",
-    );
-
-    return res.status(200).json({
-      message: "Event retrieved successfully",
-      userEventList,
-      openEventList,
-    });
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-const getMonitorEventList = async (req, res) => {
-  try {
-    const eventList = await Event.find({ status: "ongoing" })
-      .populate({
-        path: "businessList",
-        populate: {
-          path: "violationList",
-          model: "businessViolation",
-        },
-      })
-      .exec();
-    if (!eventList) {
-      return res.status(404).json({ message: "No ongoing events found" });
-    }
-
-    return res.status(200).json({
-      message: "Ongoing events retrieved successfully",
-      eventList,
-    });
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-// get event by id
-const getEvent = async (req, res) => {
+const getEventPopulated = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -190,13 +211,87 @@ const getEvent = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Event retrieved successfully", event });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getEvent = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id || !mongoose.isValidObjectId(id)) {
+      return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    const event = await Event.findById(id).exec();
+    if (!event) {
+      return res.status(404).json({ message: "No event found" });
+    }
+    return res
+      .status(200)
+      .json({ message: "Event retrieved successfully", event });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getUserEventList = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId || !mongoose.isValidObjectId(userId)) {
+      return res.status(400).json({ message: "Invalid user ID" });
+    }
+
+    const user = await User.findById(userId)
+      .populate({
+        path: "businessList",
+        populate: {
+          path: "violationList",
+          model: "businessViolation",
+        },
+      })
+      .exec();
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const businessList = user.businessList;
+
+    const eventList = await Event.find().exec();
+    if (!eventList) {
+      return res.status(404).json({ message: "No event found" });
+    }
+
+    const userEventList = eventList
+      .map((event) => {
+        const business = businessList?.find(
+          (business) => business.event.toString() === event._id.toString(),
+        );
+        if (business) {
+          return { ...event.toObject(), business };
+        }
+        return event;
+      })
+      .filter((event) => event.business);
+
+    const openEventList = eventList.filter(
+      (event) => event.status === "applicationOpen",
+    );
+
+    return res.status(200).json({
+      message: "Event retrieved successfully",
+      userEventList,
+      openEventList,
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
 // Add event
-const addEvent = async (req, res) => {
+const addEvent = async (req, res, next) => {
   try {
     const {
       businessList,
@@ -208,8 +303,17 @@ const addEvent = async (req, res) => {
       endDate,
       applicationStart,
       applicationEnd,
-      booth,
+      isLocal,
+      boothList,
     } = req.body;
+
+    const parsedBody = addEventSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
+    }
 
     const existingEvent = await Event.findOne({ title });
     if (existingEvent) {
@@ -226,25 +330,27 @@ const addEvent = async (req, res) => {
       endDate,
       applicationStart,
       applicationEnd,
-      booth,
+      isLocal,
+      boothList,
     });
     await newEvent.save();
 
     return res
       .status(201)
       .json({ message: "Event created successfully", event: newEvent });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // Edit event
 // event/:id
-const editEvent = async (req, res) => {
+const editEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
     const {
       businessList,
+      applicantList,
       title,
       location,
       logo,
@@ -253,8 +359,17 @@ const editEvent = async (req, res) => {
       endDate,
       applicationStart,
       applicationEnd,
-      booth,
+      isLocal,
+      boothList,
     } = req.body;
+
+    const parsedBody = addEventSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
+    }
 
     if (!id || !mongoose.isValidObjectId(id)) {
       return res.status(400).json({ message: "Invalid event ID" });
@@ -265,6 +380,13 @@ const editEvent = async (req, res) => {
       return res.status(404).json({ message: "Event not found" });
     }
 
+    event.businessList = Array.isArray(businessList)
+      ? businessList
+      : [businessList];
+
+    event.applicantList = Array.isArray(applicantList)
+      ? applicantList
+      : [applicantList];
     event.title = title;
     event.location = location;
     event.logo = logo;
@@ -275,59 +397,19 @@ const editEvent = async (req, res) => {
     event.endDate = endDate;
     event.applicationStart = applicationStart;
     event.applicationEnd = applicationEnd;
-    event.booth = booth;
+    event.isLocal = isLocal;
+    event.boothList = boothList;
 
     await event.save();
 
     res.status(200).json({ message: "Event updated successfully", event });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-// // apply for event
-// const applyForEvent = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { businessId } = req.body;
-//
-//     if (!id || !mongoose.isValidObjectId(id)) {
-//       return res.status(400).json({ message: "Invalid event ID" });
-//     }
-//
-//     if (!businessId || !mongoose.isValidObjectId(businessId)) {
-//       return res.status(400).json({ message: "Invalid business ID" });
-//     }
-//
-//     const event = await Event.findById(id);
-//     if (!event) {
-//       return res.status(404).json({ message: "Event not found" });
-//     }
-//
-//     const business = await Business.findById(businessId);
-//     if (!business) {
-//       return res.status(404).json({ message: "Business not found" });
-//     }
-//
-//     if (business.eventList.includes(event._id)) {
-//       return res.status(422).json({ message: "Business already applied" });
-//     }
-//
-//     if (["ongoing", "completed", "cancelled"].includes(event.status)) {
-//       return res.status(422).json({ message: "Cannot apply to this event" });
-//     }
-//
-//     event.applicantList.push({ business: business._id });
-//     await event.save();
-//
-//     return res.status(200).json({ message: "Business applied successfully" });
-//   } catch (err) {
-//     handleError(res, err);
-//   }
-// };
-
 // Archive/Unarchive event
-const archiveEvent = async (req, res) => {
+const archiveEvent = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { isArchived } = req.body;
@@ -347,15 +429,17 @@ const archiveEvent = async (req, res) => {
     return res
       .status(200)
       .json({ message: `Event ${action} successfully`, event });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
+  getEventByStatus,
+  getEventWithBusiness,
   getEventList,
   getUserEventList,
-  getMonitorEventList,
+  getEventPopulated,
   getEvent,
   addEvent,
   editEvent,

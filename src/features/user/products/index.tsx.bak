@@ -9,6 +9,7 @@ import ViewProducts from "./ViewProducts";
 
 const Products = () => {
   const userEventList = useUserEventListData();
+
   const navigate = useNavigate();
 
   return (

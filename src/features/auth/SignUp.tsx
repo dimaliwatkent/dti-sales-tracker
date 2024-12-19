@@ -30,7 +30,6 @@ import { setCredentials } from "@/api/auth/authSlice";
 import { signOut } from "@/api/auth/authSlice";
 import { clearBusinessList } from "@/api/business/businessSlice";
 import { clearEventList } from "@/api/event/eventSlice";
-import { clearSaleList } from "@/api/sale/saleSlice";
 import { clearUserList } from "@/api/user/userSlice";
 
 import { signUpSchema } from "@/zod/authSchema";
@@ -52,6 +51,7 @@ const SignUp = () => {
       phoneNumber: "",
       role: "newUser",
       businessName: "",
+      dtiRegistrationNumber: "",
     },
   });
 
@@ -85,8 +85,8 @@ const SignUp = () => {
       if (error) {
         toast({
           variant: "destructive",
-          title: "Error",
-          description: (error as { data: { message: string } })?.data.message,
+          title: (error as { data: { message: string } }).data.message,
+          description: (error as { data: { error: string } }).data.error,
         });
       }
     }
@@ -98,7 +98,6 @@ const SignUp = () => {
     dispatch(signOut());
     dispatch(clearBusinessList());
     dispatch(clearEventList());
-    dispatch(clearSaleList());
     dispatch(clearUserList());
     dispatch(clearNotication());
   }, [dispatch]);
@@ -183,6 +182,22 @@ const SignUp = () => {
               label="DTI Certificate"
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
               form={form}
+            />
+
+            <FormField
+              control={form.control}
+              name="dtiRegistrationNumber"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>DTI Registration Number</FormLabel>
+                  <FormControl>
+                    <div className="flex gap-2">
+                      <Input placeholder="" {...field} />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
 
             <FormField

@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { useUploadProfileMutation } from "@/api/upload/uploadApiSlice";
 import { useToast } from "@/components/ui/use-toast";
 import useProcessImage from "@/hooks/useProcessImage";
-import { User } from "@/types/UserType";
+import { UserType } from "@/types/UserType";
 import useDataLoader from "@/hooks/useDataLoader";
 
 import {
@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/dialog";
 
 interface ProfileUploadProps {
-  user: User;
+  user: UserType;
 }
 
 const ProfileUpload = ({ user }: ProfileUploadProps) => {

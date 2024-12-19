@@ -6,15 +6,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { EventWithBusinessType } from "@/types/EventType";
 import { formatCurrency } from "@/utils/formatCurrency";
-import { Record } from "@/types/RecordType";
 
 interface BusinessTableProps {
-  activeEvent: Record | undefined;
+  selectedEvent: EventWithBusinessType | undefined;
 }
 
-const BusinessTable = ({ activeEvent }: BusinessTableProps) => {
-  const businessList = activeEvent?.businessList;
+const BusinessTable = ({ selectedEvent }: BusinessTableProps) => {
+  const businessList = selectedEvent?.businessList;
 
   return (
     <div>
@@ -23,27 +23,15 @@ const BusinessTable = ({ activeEvent }: BusinessTableProps) => {
           <TableRow>
             <TableHead>Businesses</TableHead>
             <TableHead>Total Sales</TableHead>
-            <TableHead>Target Sales</TableHead>
-            <TableHead>Sales Difference</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {businessList?.map((business) => {
-            const salesDifference = business.totalAmount - business.targetSales;
-
             return (
-              <TableRow key={business.businessId}>
-                <TableCell>{business.businessName}</TableCell>
+              <TableRow key={business._id}>
+                <TableCell>{business.name}</TableCell>
                 <TableCell>
-                  {formatCurrency(business.totalAmount.toFixed(2))}
-                </TableCell>
-                <TableCell>{formatCurrency(business.targetSales)}</TableCell>
-                <TableCell
-                  style={{
-                    color: salesDifference < 0 ? "red" : "green",
-                  }}
-                >
-                  {formatCurrency(salesDifference.toFixed(2))}
+                  {formatCurrency(business.totalSales.$numberDecimal)}
                 </TableCell>
               </TableRow>
             );

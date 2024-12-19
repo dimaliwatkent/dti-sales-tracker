@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { selectEvent } from "@/api/event/eventSlice";
 import { useSelector } from "react-redux";
 
@@ -6,19 +6,17 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AgreementForm from "./AgreementForm";
 
 import {
   Form,
-  FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Checkbox } from "@/components/ui/checkbox";
 
 // form fields
@@ -27,20 +25,35 @@ import TextInputField from "./form-fields/TextInputField";
 import SelectField from "./form-fields/SelectField";
 import MultiSelectField from "./form-fields/MultiSelectField";
 
-import { useEditBusinessMutation } from "@/api/business/businessApiSlice";
+import {
+  useEditBusinessMutation,
+  useGetBusinessQuery,
+} from "@/api/business/businessApiSlice";
 
 import { editApplicationSchema } from "@/zod/applicationSchema";
-import useDataLoader from "@/hooks/useDataLoader";
 import ReviewForm from "./ReviewForm";
-
-import { selectActiveBusiness } from "@/api/business/businessSlice";
 import { useUserData } from "@/hooks/dataHooks";
 import SpinnerText from "@/components/SpinnerWithText";
+import { BusinessType } from "@/types/BusinessType";
+import ViewProducts from "../products/ViewProducts";
+import { formatCurrency } from "@/utils/formatCurrency";
+import AddressForm from "./form-fields/AddressForm";
 
 const EditApplicationForm = () => {
+  const { id } = useParams();
   const event = useSelector(selectEvent);
-  const business = useSelector(selectActiveBusiness);
-  const { refetchUserEventList } = useDataLoader();
+
+  const [business, setBusiness] = useState<BusinessType>();
+
+  const { data: businessData, isLoading: isBusinessLoading } =
+    useGetBusinessQuery(id);
+
+  useEffect(() => {
+    if (businessData?.business) {
+      setBusiness(businessData?.business);
+    }
+  }, [businessData]);
+
   const [agreed, setAgreed] = useState(true);
   const user = useUserData();
 
@@ -48,39 +61,43 @@ const EditApplicationForm = () => {
 
   const form = useForm<z.infer<typeof editApplicationSchema>>({
     resolver: zodResolver(editApplicationSchema),
-    defaultValues: {
-      _id: business?._id ?? "",
-      event: business?.event ?? "",
-      user: user?._id,
-      name: business?.name ?? "",
-      address: business?.address ?? "",
-      region: business?.region ?? "",
-      zip: business?.zip ?? "",
-      logo: business?.logo ?? "",
-      facebookPage: business?.facebookPage ?? "",
-      ecommerceSite: business?.ecommerceSite ?? "",
-      website: business?.website ?? "",
-      contactPersonName: business?.contactPersonName ?? "",
-      contactPersonNumber: business?.contactPersonNumber?.toString() ?? "",
-      contactPersonDesignation: business?.contactPersonDesignation ?? "",
-      contactPersonSex: business?.contactPersonSex ?? "",
-      paymentOption: business?.paymentOption ?? [],
-      logisticServiceProvider: business?.logisticServiceProvider ?? [],
-      industryClassification: business?.industryClassification ?? [],
-      productLineService: business?.productLineService ?? [],
-      product: business?.product ?? "",
-      brandName: business?.brandName ?? "",
-      category: business?.category ?? [],
-      type: business?.type ?? "",
-      assetSize: business?.assetSize ?? "",
-      targetSale: business?.targetSale ?? 0,
-      fulltimeEmployee: business?.fulltimeEmployee ?? 0,
-      parttimeEmployee: business?.parttimeEmployee ?? 0,
-      dateOfEstablishment: business?.dateOfEstablishment.split("T")[0] ?? "",
-      annualIncome: business?.annualIncome ?? 0,
-      applicationStatus: "complied",
-    },
   });
+
+  useEffect(() => {
+    if (business) {
+      form.reset({
+        _id: business._id,
+        event: business.event,
+        user: user?._id,
+        name: business.name,
+        address: business.address,
+        region: business.region,
+        zip: business.zip,
+        logo: business.logo,
+        facebookPage: business.facebookPage,
+        ecommerceSite: business.ecommerceSite,
+        website: business.website,
+        contactPersonName: business.contactPersonName,
+        contactPersonNumber: business.contactPersonNumber.toString(),
+        contactPersonDesignation: business.contactPersonDesignation,
+        contactPersonSex: business.contactPersonSex,
+        paymentOption: business.paymentOption,
+        logisticServiceProvider: business.logisticServiceProvider,
+        industryClassification: business.industryClassification,
+        productLineService: business.productLineService,
+        brandName: business.brandName,
+        category: business.category,
+        type: business.type,
+        productList: business.productList,
+        assetSize: business.assetSize,
+        fulltimeEmployee: business.fulltimeEmployee,
+        parttimeEmployee: business.parttimeEmployee,
+        dateOfEstablishment: business.dateOfEstablishment.split("T")[0],
+        annualIncome: business.annualIncome,
+        applicationStatus: "complied",
+      });
+    }
+  }, [business, form]);
 
   const [editBusiness, { isLoading }] = useEditBusinessMutation();
   const navigate = useNavigate();
@@ -94,8 +111,6 @@ const EditApplicationForm = () => {
         title: result.message,
         description: "Please wait for confirmation",
       });
-      console.log(result.business);
-      refetchUserEventList();
     } catch (error: unknown) {
       if (error) {
         toast({
@@ -107,10 +122,12 @@ const EditApplicationForm = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isBusinessLoading || !businessData.business) {
     return (
       <div>
-        <SpinnerText spin={isLoading} />
+        <SpinnerText
+          spin={isLoading || isBusinessLoading || !businessData.business}
+        />
       </div>
     );
   }
@@ -135,25 +152,13 @@ const EditApplicationForm = () => {
               form={form}
             />
 
-            <TextInputField
-              name="address"
-              label="Address"
-              type="text"
-              placeholder="Tanza, Boac, Marinduque"
-              description="Barangay, Municipality, Province"
-              form={form}
-            />
-
-            <SelectField
-              name="region"
-              label="Region"
-              options={[
-                { value: "4A-MIMAROPA", label: "4A-MIMAROPA" },
-                { value: "4B-CALABARZON", label: "4B-CALABARZON" },
-              ]}
-              placeholder="Select a Region"
-              form={form}
-            />
+            <div>
+              <div className="mb-2">
+                <FormLabel>Address</FormLabel>
+                <FormMessage />
+              </div>
+              <AddressForm form={form} />
+            </div>
 
             <TextInputField
               name="zip"
@@ -272,27 +277,6 @@ const EditApplicationForm = () => {
               form={form}
             />
 
-            <FormField
-              control={form.control}
-              name="product"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Products</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Apple, Banana, Coconut"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    List here all your products seperated by comma
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <TextInputField
               name="brandName"
               label="Brand Name"
@@ -342,13 +326,6 @@ const EditApplicationForm = () => {
             />
 
             <TextInputField
-              name="targetSale"
-              label="Target Sale"
-              type="number"
-              form={form}
-            />
-
-            <TextInputField
               name="fulltimeEmployee"
               label="Number of Full-time Employees"
               type="number"
@@ -380,6 +357,42 @@ const EditApplicationForm = () => {
               accept="image/*"
               form={form}
             />
+
+            <p className="text-xl font-bold">Products</p>
+
+            <FormField
+              control={form.control}
+              name="productList"
+              render={({ field }) => (
+                <FormItem>
+                  {field.value.length > 0 ? (
+                    field.value.map((product, index) => (
+                      <div key={index} className="border rounded-lg p-2">
+                        <div className=" flex justify-between">
+                          <p>{product.name}</p>
+                          <p>{formatCurrency(product.price.$numberDecimal)}</p>
+                        </div>
+                        <p className="text-sm text-primary/60">
+                          {product.description}
+                        </p>
+                        {product.picture && (
+                          <img
+                            src={product.picture}
+                            alt={product.name}
+                            className="aspect-square h-20 object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div>No product added</div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <ViewProducts form={form} />
 
             <p className="text-xl font-bold">Requirements</p>
 
@@ -421,13 +434,6 @@ const EditApplicationForm = () => {
             <FileField
               name="menuCopyFile"
               label="Photocopy of the Menu"
-              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
-              form={form}
-            />
-
-            <FileField
-              name="productPhotosFile"
-              label="Photos of the products to be sold"
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
               form={form}
             />

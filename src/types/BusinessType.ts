@@ -1,11 +1,18 @@
-import { User } from "./UserType";
+import { ProductType } from "./Product";
+import { UserType } from "./UserType";
 import { BusinessViolation } from "./ViolationType";
 /**
  * Interface for business data
  */
-export interface Business {
+export interface BusinessShortType {
   _id: string;
-  user: User;
+  name: string;
+  totalSales: number;
+}
+
+export interface BusinessType {
+  _id: string;
+  user: UserType;
   event: string;
   saleList: string[];
   customProductList: string[];
@@ -29,7 +36,6 @@ export interface Business {
   logisticServiceProvider: string[];
   industryClassification: string[];
   productLineService: string[];
-  product: string;
   brandName: string;
   category: string[];
   documentList: {
@@ -38,10 +44,10 @@ export interface Business {
     _id: string;
   }[];
   type: string;
+  productList: ProductType[];
 
   // Business Statistics
   assetSize: string;
-  targetSale: number;
   fulltimeEmployee: number;
   parttimeEmployee: number;
   dateOfEstablishment: string;
@@ -61,7 +67,7 @@ export interface Business {
 
 export interface BusinessWithViolation {
   _id: string;
-  user: User;
+  user: UserType;
   event: string;
   violationList: BusinessViolation[];
 
@@ -85,6 +91,7 @@ export interface BusinessWithViolation {
     _id: string;
   }[];
   type: string;
+  productList: ProductType[];
 
   // Business Statistics
   assetSize: number;
@@ -104,4 +111,11 @@ export interface BusinessWithViolation {
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface BusinessListViolationType {
+  _id: string;
+  name: string;
+  boothNumber: string;
+  violationList: string[];
 }

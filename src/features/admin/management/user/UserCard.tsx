@@ -1,4 +1,4 @@
-import { User } from "@/types/UserType";
+import { UserType } from "@/types/UserType";
 
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,7 +7,7 @@ import { roleMap } from "@/constants";
 import { Mail, Phone } from "lucide-react";
 
 interface UserCardProps {
-  user: User;
+  user: UserType;
 }
 
 const UserCard = ({ user }: UserCardProps) => {

@@ -26,5 +26,8 @@ export const addEventSchema = z.object({
     { message: "Invalid status" },
   ),
   businessList: z.array(z.unknown()).optional(),
-  booth: z.array(z.unknown()).optional(),
+  applicantList: z.array(z.unknown()).optional(),
+  documentList: z.array(z.unknown()).optional(),
+  isLocal: z.boolean(),
+  boothList: z.array(z.unknown()).optional(),
 });

@@ -1,5 +1,4 @@
-import { Business } from "@/types/BusinessType";
-import ApproveBusiness from "./ApproveBusiness";
+import { BusinessType } from "@/types/BusinessType";
 
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,45 +6,38 @@ import { Button } from "@/components/ui/button";
 
 import { User as UserIcon, MapPinHouse, ChartBarBig } from "lucide-react";
 
-import { setActiveBusiness } from "@/api/business/businessSlice";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import RejectBusiness from "./RejectBusiness";
-import ForCompletionBusiness from "./ForCompletionBusiness";
 import { useUserData } from "@/hooks/dataHooks";
 
 interface BusinessCardProps {
-  business: Business;
+  business: BusinessType;
   type: string;
 }
 
 const BusinessCard = ({ business, type }: BusinessCardProps) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const user = useUserData();
   const role = user.role;
 
-  const handleBusinessClick = (business: Business) => {
+  const handleBusinessClick = (business: BusinessType) => {
     if (role === "admin") {
-      navigate("/admin/management/view-business");
+      navigate(`/admin/management/view-business/${business._id}/${type}`);
     } else if (role === "user") {
-      navigate("/events/business/view-business");
+      navigate(`/events/business/view-business/${business._id}`);
     }
-    dispatch(setActiveBusiness(business));
   };
 
   const handleViolationClick = () => {
     if (role === "admin") {
-      navigate("/admin/management/violation/view-violation");
+      navigate(`/admin/management/violation/view-violation/${business?._id}`);
     } else if (role === "user") {
-      navigate("/events/violation/view-violation");
+      navigate(`/events/violation/view-violation/${business?._id}`);
     }
-    dispatch(setActiveBusiness(business));
   };
 
   return (
     <div>
-      <Card className={`${business.isArchived ? "opacity-30" : ""} p-6`}>
+      <Card className={" p-6"}>
         <div className="flex items-center gap-4">
           {business.logo ? (
             <div className="aspect-square h-20 rounded-lg overflow-hidden">
@@ -88,22 +80,6 @@ const BusinessCard = ({ business, type }: BusinessCardProps) => {
         <div className={` mt-4 flex gap-2 items-center`}>
           <Button onClick={() => handleBusinessClick(business)}>View</Button>
 
-          {type !== "regular" && (
-            <div className="flex gap-2 items-center">
-              {type === "applicant" ? (
-                <>
-                  <ApproveBusiness business={business} />
-                  <ForCompletionBusiness business={business} />
-                  <RejectBusiness business={business} />
-                </>
-              ) : type === "forcompletion" ? (
-                <>
-                  <ApproveBusiness business={business} />
-                  <RejectBusiness business={business} />
-                </>
-              ) : null}
-            </div>
-          )}
           {business.applicationStatus === "approved" && (
             <div>
               <Button onClick={handleViolationClick}>Violations</Button>

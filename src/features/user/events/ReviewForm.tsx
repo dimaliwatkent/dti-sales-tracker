@@ -9,6 +9,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { ProductType } from "@/types/Product";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 interface ReviewFormProps {
   formData: { [key: string]: any };
@@ -105,7 +107,7 @@ const ReviewForm = ({
                 </div>
               ))}
 
-              {formData["logoFile"] ? (
+              {formData["logoFile"] && (
                 <div className="mt-4">
                   <div className="">
                     <p className="">Business Logo:</p>
@@ -116,8 +118,31 @@ const ReviewForm = ({
                     />
                   </div>
                 </div>
-              ) : (
-                ""
+              )}
+
+              {formData["productList"] && (
+                <div className="mt-4">
+                  <div className="">
+                    <p className="">Product List</p>
+                    <div>
+                      {formData["productList"].map(
+                        (product: ProductType, index: number) => (
+                          <div key={index} className="border rounded-lg p-2">
+                            <div className=" flex justify-between">
+                              <p>{product.name}</p>
+                              <p>
+                                {formatCurrency(product.price.$numberDecimal)}
+                              </p>
+                            </div>
+                            <p className="text-sm text-primary/60">
+                              {product.description}
+                            </p>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </ScrollArea>

@@ -3,31 +3,47 @@ import {
   useMarkAsPaidMutation,
 } from "@/api/violation/violationApiSlice";
 import SpinnerText from "@/components/SpinnerWithText";
-import { useActiveBusinessData, useUserData } from "@/hooks/dataHooks";
-import { BusinessViolation } from "@/types/ViolationType";
+import { useUserData } from "@/hooks/dataHooks";
+import {
+  BusinessWithViolation,
+  BusinessViolation,
+} from "@/types/ViolationType";
 import { formatCurrency } from "@/utils/formatCurrency";
 
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
+import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { formatDateTime } from "@/utils/formatTime";
 
 const ViewViolation = () => {
+  const { id } = useParams();
+  const [business, setBusiness] = useState<BusinessWithViolation>();
+  const violationList = business?.violationList;
+
   const user = useUserData();
   const showButton = user.role === "admin";
 
-  const business = useActiveBusinessData();
-  const { data, isLoading, refetch } = useGetBusinessViolationQuery(
-    business._id,
-  );
-  const violationList = data?.violationList;
+  const {
+    data: businessData,
+    isLoading: isBusinessLoading,
+    refetch: refetchBusiness,
+  } = useGetBusinessViolationQuery(id);
+
+  useEffect(() => {
+    if (businessData?.business) {
+      setBusiness(businessData?.business);
+    }
+  }, [businessData]);
 
   const [markAsPaid, { isLoading: isLoadingMark }] = useMarkAsPaidMutation();
   const { toast } = useToast();
 
-  if (isLoading || isLoadingMark) {
+  if (isBusinessLoading || isLoadingMark) {
     return (
       <div>
-        <SpinnerText spin={isLoading} />
+        <SpinnerText spin={isBusinessLoading} />
       </div>
     );
   }
@@ -35,11 +51,11 @@ const ViewViolation = () => {
   const handleMarkAsPaid = async (violationId?: string) => {
     try {
       const result = await markAsPaid({
-        businessId: business._id,
+        businessId: id,
         violationIds: violationId
           ? [violationId]
           : violationList
-              .filter((violation: BusinessViolation) => violation.count > 2)
+              ?.filter((violation: BusinessViolation) => violation.count > 2)
               .map((violation: BusinessViolation) => violation._id),
       }).unwrap();
 
@@ -48,8 +64,6 @@ const ViewViolation = () => {
         title: "Success",
         description: result.message,
       });
-
-      refetch();
     } catch (error: unknown) {
       if (error) {
         toast({
@@ -63,7 +77,7 @@ const ViewViolation = () => {
 
   const calculateTotalFine = () => {
     let totalFine = 0;
-    violationList.forEach((violation: BusinessViolation) => {
+    violationList?.forEach((violation: BusinessViolation) => {
       if (violation.count > 2 && !violation.isPaid) {
         totalFine += violation.violation.fee * violation.count;
       }
@@ -80,10 +94,10 @@ const ViewViolation = () => {
   return (
     <div className="border rounded-lg p-6">
       <div className="flex flex-col md:flex-row items-center gap-4">
-        {business.logo ? (
+        {business?.logo ? (
           <div className="aspect-square h-16 rounded-lg overflow-hidden">
             <img
-              src={business.logo}
+              src={business?.logo}
               alt="profile-picture"
               className="object-cover h-full w-full"
             />
@@ -93,10 +107,10 @@ const ViewViolation = () => {
         )}
         <div>
           <div className="flex items-center gap-4 mb-4 ">
-            <p className="text-xl font-bold ">{business.name}</p>
+            <p className="text-xl font-bold ">{business?.name}</p>
 
             <div className="bg-gray-200 dark:bg-gray-800 px-2 rounded-full">
-              <p className="text-sm">{business.boothNumber}</p>
+              <p className="text-sm">{business?.boothNumber}</p>
             </div>
           </div>
         </div>
@@ -106,7 +120,7 @@ const ViewViolation = () => {
       <div className="flex justify-between">
         <p className="text-xl font-bold pb-4">Violations</p>
         <div className="flex gap-2">
-          <Button onClick={() => refetch()}>Refresh</Button>
+          <Button onClick={() => refetchBusiness()}>Refresh</Button>
           {showButton && (
             <Button onClick={() => handleMarkAsPaid()}>Mark All As Paid</Button>
           )}
@@ -138,6 +152,22 @@ const ViewViolation = () => {
                         : ""}
                     </p>
                   </div>
+                  <p>
+                    Date:{" "}
+                    <span className="font-bold">
+                      {formatDateTime(violation.updatedAt)}
+                    </span>
+                  </p>
+                  <p>
+                    Monitor:{" "}
+                    <span className="font-bold">{violation.monitor.name}</span>
+                  </p>
+                  {violation.count > 2 && (
+                    <p>
+                      Reason:{" "}
+                      <span className="font-bold">{violation.message}</span>
+                    </p>
+                  )}
                 </div>
                 <div>
                   {violation.count > 2 &&

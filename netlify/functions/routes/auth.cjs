@@ -5,24 +5,16 @@ const {
   loginWithRefreshToken,
   signOut,
   forgotPassword,
-  validateResetPinAndUpdatePassword,
+  resetPassword,
 } = require("../controller/auth.cjs");
 
 const router = express.Router();
 
-const multer = require("multer");
-
-const storage = multer.memoryStorage();
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
-});
-
-router.post("/signup", upload.single("document"), signUp);
+router.post("/signup", signUp);
 router.post("/signin", signIn);
 router.post("/signout", signOut);
 router.post("/refresh", loginWithRefreshToken);
 router.post("/forgot-password", forgotPassword);
-router.post("/validate-reset-pin", validateResetPinAndUpdatePassword);
+router.post("/reset-password", resetPassword);
 
 module.exports = router;

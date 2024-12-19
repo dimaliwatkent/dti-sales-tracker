@@ -1,13 +1,14 @@
-import { Business } from "@/types/BusinessType";
+import { BusinessType } from "@/types/BusinessType";
 import { formatCurrency } from "@/utils/formatCurrency";
 import { formatDateTime } from "@/utils/formatTime";
 
 import { Separator } from "@/components/ui/separator";
 
 import { MapPin, AlignJustify, Link2, ShoppingCart } from "lucide-react";
+import PicturePopUp from "@/components/PicturePopUp";
 
 interface BusinessProfileProps {
-  business: Business;
+  business: BusinessType | undefined;
 }
 
 interface ProfileDetailsProps {
@@ -42,50 +43,52 @@ const ProfileDetails = ({ title, value }: ProfileDetailsProps) => {
 };
 
 const BusinessProfile = ({ business }: BusinessProfileProps) => {
-  const documents = business.documentList || [];
+  const productList = business?.productList || [];
+  const documents = business?.documentList || [];
 
   const profileDetails = [
-    { title: "Business Name", value: business.name },
-    { title: "Booth Number", value: business.boothNumber },
-    { title: "Address", value: business.address },
-    { title: "Region", value: business.region },
-    { title: "Zip Code", value: business.zip },
+    { title: "Business Name", value: business?.name },
+    { title: "Booth Number", value: business?.boothNumber },
+    { title: "Address", value: business?.address },
+    { title: "Region", value: business?.region },
+    { title: "Zip Code", value: business?.zip },
 
-    { title: "Founded", value: formatDateTime(business.dateOfEstablishment) },
-    { title: "Contact Person's Name", value: business.contactPersonName },
+    { title: "Founded", value: formatDateTime(business?.dateOfEstablishment) },
+    { title: "Contact Person's Name", value: business?.contactPersonName },
     {
       title: "Contact Person's Phone Number",
-      value: `0${business.contactPersonNumber}`,
+      value: `0${business?.contactPersonNumber}`,
     },
     {
       title: "Contact Person's Designation",
-      value: business.contactPersonDesignation,
+      value: business?.contactPersonDesignation,
     },
-    { title: "Contact Person's Sex", value: business.contactPersonSex },
+    { title: "Contact Person's Sex", value: business?.contactPersonSex },
 
-    { title: "Payment Method", value: business.paymentOption },
+    { title: "Payment Method", value: business?.paymentOption },
     {
       title: "Logistic Service Provider",
-      value: business.logisticServiceProvider,
+      value: business?.logisticServiceProvider,
     },
     {
       title: "Industry Classification",
-      value: business.industryClassification,
+      value: business?.industryClassification,
     },
-    { title: "Product Line of Service", value: business.productLineService },
-    { title: "Products", value: business.product },
-    { title: "Brand Name", value: business.brandName },
-    { title: "Prorietorship", value: business.type },
-    { title: "Asset Size", value: business.assetSize },
-    { title: "Target Sales", value: formatCurrency(business.targetSale) },
-    { title: "Annual Income", value: formatCurrency(business.annualIncome) },
+    { title: "Product Line of Service", value: business?.productLineService },
+    { title: "Brand Name", value: business?.brandName },
+    { title: "Prorietorship", value: business?.type },
+    { title: "Asset Size", value: business?.assetSize },
+    {
+      title: "Annual Income",
+      value: formatCurrency(business?.annualIncome || ""),
+    },
     {
       title: "Full-time Employees",
-      value: business.fulltimeEmployee,
+      value: business?.fulltimeEmployee,
     },
     {
       title: "Part-time Employees",
-      value: business.parttimeEmployee,
+      value: business?.parttimeEmployee,
     },
   ];
 
@@ -102,10 +105,10 @@ const BusinessProfile = ({ business }: BusinessProfileProps) => {
   return (
     <div className="business-profile border rounded-lg p-6">
       <div className="flex flex-col md:flex-row items-center gap-16 ">
-        {business.logo ? (
+        {business?.logo ? (
           <div className="aspect-square h-40 rounded-lg overflow-hidden">
             <img
-              src={business.logo}
+              src={business?.logo}
               alt="profile-picture"
               className="object-cover h-full w-full"
             />
@@ -115,30 +118,30 @@ const BusinessProfile = ({ business }: BusinessProfileProps) => {
         )}
         <div>
           <div className="flex items-center gap-4 mb-4 ">
-            <p className="text-xl font-bold ">{business.name}</p>
+            <p className="text-xl font-bold ">{business?.name}</p>
 
             <div className="bg-gray-200 dark:bg-gray-800 px-2 rounded-full">
-              <p className="text-sm">{business.applicationStatus}</p>
+              <p className="text-sm">{business?.applicationStatus}</p>
             </div>
           </div>
 
           {business?.address && (
             <ProfileSection
-              value={business.address}
+              value={business?.address}
               icon={<MapPin size={16} />}
             />
           )}
 
           {business?.category && (
             <ProfileSection
-              value={business.category.join(", ")}
+              value={business?.category.join(", ")}
               icon={<AlignJustify size={16} />}
             />
           )}
 
           {business?.facebookPage && (
             <ProfileSection
-              value={<a>{business.facebookPage}</a>}
+              value={<a>{business?.facebookPage}</a>}
               icon={
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -160,13 +163,13 @@ const BusinessProfile = ({ business }: BusinessProfileProps) => {
 
           {business?.ecommerceSite && (
             <ProfileSection
-              value={<a>{business.ecommerceSite}</a>}
+              value={<a>{business?.ecommerceSite}</a>}
               icon={<ShoppingCart size={16} />}
             />
           )}
           {business?.website && (
             <ProfileSection
-              value={<a>{business.website}</a>}
+              value={<a>{business?.website}</a>}
               icon={<Link2 size={16} />}
             />
           )}
@@ -180,9 +183,31 @@ const BusinessProfile = ({ business }: BusinessProfileProps) => {
           <ProfileDetails
             key={index}
             title={section.title}
-            value={section.value}
+            value={section.value || ""}
           />
         ))}
+      </div>
+
+      <p className="text-xl font-bold mt-6 mb-2">Product List</p>
+      <div className="space-y-3">
+        {productList &&
+          productList.map((product, index: number) => (
+            <div key={index} className="border rounded-lg p-2">
+              <div className="flex gap-2">
+                {product.picture && <PicturePopUp picture={product.picture} />}
+                <div className="w-full">
+                  <div className=" flex justify-between">
+                    <p>{product.name}</p>
+
+                    <p>{formatCurrency(product.price.$numberDecimal)}</p>
+                  </div>
+                  <p className="text-sm text-primary/60">
+                    {product.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
       </div>
 
       <p className="text-xl font-bold mt-6 mb-2">Requirements</p>

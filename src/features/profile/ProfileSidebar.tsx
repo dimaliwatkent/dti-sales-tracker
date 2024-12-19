@@ -2,12 +2,11 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Menu } from "lucide-react";
 import SignOut from "@/features/auth/SignOut";
-import { useBusinessData, useUserData } from "@/hooks/dataHooks";
+import { useUserData } from "@/hooks/dataHooks";
 import { ModeToggle } from "@/components/mode-toggle";
 
 const ProfileSidebar = () => {
   const user = useUserData();
-  const business = useBusinessData();
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -21,9 +20,7 @@ const ProfileSidebar = () => {
             <div className="flex gap-4 items-center">
               <div className="bg-secondary w-16 h-16 rounded-xl"></div>
               <div>
-                {business && (
-                  <p className="text-xl font-bold">{business?.name}</p>
-                )}
+                <p className="text-xl font-bold">{user?.businessName}</p>
                 <p>{user?.name}</p>
               </div>
             </div>

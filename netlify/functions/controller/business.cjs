@@ -2,37 +2,21 @@ const Business = require("../models/business.cjs");
 const User = require("../models/user.cjs");
 const Event = require("../models/event.cjs");
 const mongoose = require("mongoose");
-const nodemailer = require("nodemailer");
 
-// aws s3
-const dotenv = require("dotenv");
+const { sendEmail } = require("../utils/sendEmail.cjs");
 
-const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
-
-dotenv.config();
-
-const bucketName = process.env.S3_BUCKET_NAME;
-const bucketRegion = process.env.S3_BUCKET_REGION;
-const accessKey = process.env.S3_BUCKET_ACCESS_KEY;
-const secretKey = process.env.S3_BUCKET_SECRET_KEY;
-
-const s3 = new S3Client({
-  credentials: {
-    accessKeyId: accessKey,
-    secretAccessKey: secretKey,
-  },
-  region: bucketRegion,
-});
-
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
-};
+const {
+  uploadToS3,
+  bucketName,
+  bucketRegion,
+} = require("../utils/s3Client.cjs");
+const {
+  applicationSchema,
+  editApplicationSchema,
+} = require("../zod/applicationSchema.cjs");
 
 // get business by id
-const getBusiness = async (req, res) => {
+const getBusiness = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -49,13 +33,13 @@ const getBusiness = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Business retrieved successfully", business });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // get archived business list
-const getBusinessList = async (req, res) => {
+const getBusinessList = async (req, res, next) => {
   try {
     const isArchived = req.query.isArchived === "true";
     const business = await Business.find({ isArchived })
@@ -69,13 +53,13 @@ const getBusinessList = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Business list retrieved successfully", business });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // create business
-const addBusiness = async (req, res) => {
+const addBusiness = async (req, res, next) => {
   try {
     const {
       eventId,
@@ -87,9 +71,18 @@ const addBusiness = async (req, res) => {
       businessNameRegFile,
       validIdFile,
       menuCopyFile,
-      productPhotosFile,
+      birPermit,
+      mayorPermit,
       ...businessData
     } = req.body;
+
+    const parsedBody = applicationSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
+    }
 
     if (!userId || !mongoose.isValidObjectId(userId)) {
       return res.status(400).json({ message: "Invalid user ID" });
@@ -120,8 +113,6 @@ const addBusiness = async (req, res) => {
       event: eventId,
     });
 
-    // UPLOAD LOGO
-
     const files = [
       { file: logoFile, type: "logo" },
       { file: waiverFile, type: "waiver" },
@@ -130,7 +121,8 @@ const addBusiness = async (req, res) => {
       { file: businessNameRegFile, type: "business-name-reg" },
       { file: validIdFile, type: "valid-id" },
       { file: menuCopyFile, type: "menu-copy" },
-      { file: productPhotosFile, type: "product-photos" },
+      { file: birPermit, type: "bir-permit" },
+      { file: mayorPermit, type: "mayor-permit" },
     ];
 
     const uploadedFiles = await Promise.all(
@@ -138,17 +130,26 @@ const addBusiness = async (req, res) => {
         const binaryFile = Buffer.from(file.file.split(",")[1], "base64");
         const fileType = file.file.split(";")[0].split(":")[1];
         const fileExtension = fileType.split("/")[1];
+
         const fileName = `documents/${event.title}/${newBusiness.name}/${file.type}/${newBusiness.name}-${newBusiness._id}.${fileExtension}`;
+
         const params = {
           Bucket: bucketName,
           Key: fileName,
           Body: binaryFile,
           ContentType: fileType,
         };
-        const command = new PutObjectCommand(params);
-        await s3.send(command);
-        const imageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
-        return { type: file.type, url: imageUrl };
+
+        try {
+          await uploadToS3(params);
+        } catch (error) {
+          return res.status(500).json({
+            message: "Failed to upload document",
+            error: error.name,
+          });
+        }
+        const docUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+        return { type: file.type, url: docUrl };
       }),
     );
 
@@ -167,6 +168,46 @@ const addBusiness = async (req, res) => {
 
     newBusiness.documentList = documents;
 
+    // upload product image picture
+
+    if (newBusiness.productList && newBusiness.productList.length > 0) {
+      const productImagePromises = newBusiness.productList.map(
+        async (product) => {
+          if (product.picture) {
+            const binaryFile = Buffer.from(
+              product.picture.split(",")[1],
+              "base64",
+            );
+            const fileType = product.picture.split(";")[0].split(":")[1];
+            const fileExtension = fileType.split("/")[1];
+
+            const fileName = `products/${event.title}/${newBusiness.name}/${product.name}.${fileExtension}`;
+
+            const params = {
+              Bucket: bucketName,
+              Key: fileName,
+              Body: binaryFile,
+              ContentType: fileType,
+            };
+
+            try {
+              await uploadToS3(params);
+            } catch (error) {
+              return res.status(500).json({
+                message: "Failed to upload product image",
+                error: error.name,
+              });
+            }
+
+            const imageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+            product.picture = imageUrl;
+          }
+        },
+      );
+
+      await Promise.all(productImagePromises);
+    }
+
     await newBusiness.save();
 
     user.businessList = [...(user.businessList || []), newBusiness._id];
@@ -182,15 +223,23 @@ const addBusiness = async (req, res) => {
       message: "Business created successfully",
       business: newBusiness,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const editBusiness = async (req, res) => {
+const editBusiness = async (req, res, next) => {
   try {
     const { id } = req.params;
     const businessData = req.body;
+
+    const parsedBody = editApplicationSchema.safeParse(req.body);
+    if (!parsedBody.success) {
+      return res.status(422).json({
+        message: "Invalid request body",
+        errors: parsedBody.error.issues,
+      });
+    }
 
     if (!mongoose.isValidObjectId(id)) {
       return res.status(400).json({ message: "Invalid business ID" });
@@ -216,55 +265,13 @@ const editBusiness = async (req, res) => {
       message: "Business updated successfully",
       business: updatedBusiness,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-// edit business
-// const editBusiness = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { isAdmin, userId } = req.body;
-//
-//     if (!id || !mongoose.isValidObjectId(id)) {
-//       return res.status(400).json({ message: "Invalid business ID" });
-//     }
-//
-//     if (!userId || !mongoose.isValidObjectId(userId)) {
-//       return res.status(400).json({ message: "Invalid user ID" });
-//     }
-//
-//     const business = await Business.findById(id);
-//     if (!business) {
-//       return res.status(404).json({ message: "Business not found" });
-//     }
-//
-//     if (business.applicationStatus === "approved" && !isAdmin) {
-//       return res
-//         .status(403)
-//         .json({ message: "Only admins can edit approved businesses" });
-//     }
-//
-//     const updatedBusinessData = {
-//       ...req.body,
-//       user: userId,
-//     };
-//     delete updatedBusinessData.isAdmin;
-//
-//     Object.assign(business, updatedBusinessData);
-//     await business.save();
-//
-//     res
-//       .status(200)
-//       .json({ message: "Business updated successfully", business });
-//   } catch (err) {
-//     handleError(res, err);
-//   }
-// };
-
-// business application
-const applicationStatus = async (req, res) => {
+// business application status "forcompletion", "pending", "approved", "rejected", "complied",
+const applicationStatus = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { applicationStatus, statusMessage } = req.body;
@@ -295,12 +302,19 @@ const applicationStatus = async (req, res) => {
         (applicantId) => applicantId.toString() !== id,
       );
       event.businessList.push(id);
+
       await sendEmail(
         existingBusiness.user.email,
         "Business Application Approved",
         `<p>Your business application for ${event.title} has been approved. Congratulations!</p>`,
       );
-    } else {
+    } else if (applicationStatus === "forcompletion") {
+      await sendEmail(
+        existingBusiness.user.email,
+        "Business Application Incomplete",
+        `<p>Your business application for ${event.title} needs completion. ${statusMessage}.</p>`,
+      );
+    } else if (applicationStatus === "rejected") {
       await sendEmail(
         existingBusiness.user.email,
         "Business Application Rejected",
@@ -336,69 +350,33 @@ const applicationStatus = async (req, res) => {
       business: existingBusiness,
       event: newEvent,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-// archive business
-const archiveBusiness = async (req, res) => {
+// get business by id
+const getBusinessProductList = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { isArchived } = req.body;
 
     if (!id || !mongoose.isValidObjectId(id)) {
       return res.status(400).json({ message: "Invalid business ID" });
     }
 
-    const existingBusiness = await Business.findById(id);
+    const business = await Business.findById(id).select("_id productList");
 
-    if (!existingBusiness) {
+    if (!business) {
       return res.status(404).json({ message: "No business found" });
     }
 
-    existingBusiness.isArchived = isArchived;
-    await existingBusiness.save();
-
-    const action = isArchived ? "archived" : "unarchived";
-
-    return res.status(200).json({
-      message: `Business ${action} successfully`,
-      business: existingBusiness,
-    });
-  } catch (err) {
-    handleError(res, err);
+    return res
+      .status(200)
+      .json({ message: "Business retrieved successfully", business });
+  } catch (error) {
+    next(error);
   }
 };
-
-async function sendEmail(to, subject, htmlContent) {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 587,
-      service: "gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASSWORD,
-      },
-    });
-
-    const mailOptions = {
-      from: `"Expo Management System" <${process.env.EMAIL}>`,
-      to: to,
-      subject: subject,
-      html: htmlContent,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-
-    console.log("Email sent:", info.response);
-    return info;
-  } catch (error) {
-    console.error("Error sending email:", error.message);
-    throw new Error("Email failed to send");
-  }
-}
 
 module.exports = {
   getBusiness,
@@ -406,5 +384,5 @@ module.exports = {
   addBusiness,
   editBusiness,
   applicationStatus,
-  archiveBusiness,
+  getBusinessProductList,
 };

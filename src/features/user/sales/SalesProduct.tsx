@@ -8,19 +8,18 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 import { formatCurrency } from "@/utils/formatCurrency";
-import { useProductListData } from "@/hooks/dataHooks";
-import { CustomProduct } from "@/types/CustomProduct";
-import useDataLoader from "@/hooks/useDataLoader";
+import { useGetBusinessProductListQuery } from "@/api/business/businessApiSlice";
+import SpinnerText from "@/components/SpinnerWithText";
 
 interface SalesProductProps {
-  activeEventId: string;
+  businessId: string;
   isLoading: boolean;
   setTransaction: (transaction: Transaction) => void;
   handleUpdateSale: () => void;
 }
 
 const SalesProduct = ({
-  activeEventId,
+  businessId,
   isLoading,
   setTransaction,
   handleUpdateSale,
@@ -31,24 +30,33 @@ const SalesProduct = ({
     [currentProducts],
   );
 
-  const {isLoading: rerenderTracker} = useDataLoader()
-
-  const customProductList = useProductListData();
+  // will came from the business application
+  const [customProductList, setCustomProductList] = useState<ProductType[]>([]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [totalPrice, setTotalPrice] = useState("");
   const [filteredProducts, setFilteredProducts] = useState(customProductList);
 
+  const {
+    data: productsData,
+    isLoading: isProductsLoading,
+    // refetch: refetchProducts,
+  } = useGetBusinessProductListQuery(businessId);
+
   useEffect(() => {
-    const filtered = customProductList.filter(
-      (product: CustomProduct) =>
-        product.event === activeEventId &&
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()),
+    if (productsData?.business.productList) {
+      setCustomProductList(productsData?.business.productList);
+    }
+  }, [productsData]);
+
+  useEffect(() => {
+    const filtered = customProductList.filter((product) =>
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()),
     );
     setFilteredProducts(filtered);
-  }, [activeEventId, customProductList, searchTerm, rerenderTracker]);
+  }, [customProductList, searchTerm]);
 
-  const handleAddProduct = (product: CustomProduct) => {
+  const handleAddProduct = (product: ProductType) => {
     const existingProductIndex = currentProducts.findIndex(
       (existingProduct) => existingProduct.name === product.name,
     );
@@ -99,6 +107,14 @@ const SalesProduct = ({
     setTotalPrice(totalAmount.$numberDecimal);
     setTransaction(newTransaction);
   }, [currentProducts, setTransaction]);
+
+  if (isProductsLoading) {
+    return (
+      <div>
+        <SpinnerText spin={isProductsLoading} />
+      </div>
+    );
+  }
 
   return (
     <div className="pb-44">
@@ -173,22 +189,20 @@ const SalesProduct = ({
               {!filteredProducts || filteredProducts.length === 0 ? (
                 <div>No custom products</div>
               ) : (
-                filteredProducts.map(
-                  (product: CustomProduct, index: number) => (
-                    <div
-                      key={index}
-                      className="flex justify-between cursor-pointer border p-3 rounded-lg bg-secondary active:scale-95"
-                      onClick={() => handleAddProduct(product)}
-                    >
-                      <div className="flex gap-3 items-center">
-                        <Plus size={16} />
-                        <p>{product.name}</p>
-                      </div>
-
-                      <p>{formatCurrency(product.price.$numberDecimal)}</p>
+                filteredProducts.map((product, index: number) => (
+                  <div
+                    key={index}
+                    className="flex justify-between cursor-pointer border p-3 rounded-lg bg-secondary active:scale-95"
+                    onClick={() => handleAddProduct(product)}
+                  >
+                    <div className="flex gap-3 items-center">
+                      <Plus size={16} />
+                      <p>{product.name}</p>
                     </div>
-                  ),
-                )
+
+                    <p>{formatCurrency(product.price.$numberDecimal)}</p>
+                  </div>
+                ))
               )}
             </div>
           </ScrollArea>

@@ -2,14 +2,33 @@ const Event = require("../models/event.cjs");
 const Business = require("../models/business.cjs");
 const mongoose = require("mongoose");
 
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
+const getBooth = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+
+    if (!eventId || !mongoose.isValidObjectId(eventId)) {
+      return res.status(400).json({ message: "Invalid event ID" });
+    }
+
+    const event = await Event.findById(eventId)
+      .select("title _id boothList")
+      .populate({
+        path: "businessList",
+        select: "_id name",
+      })
+      .exec();
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    return res.status(200).json({ event });
+  } catch (error) {
+    next(error);
+  }
 };
 
-const updateBooth = async (req, res) => {
+const updateBooth = async (req, res, next) => {
   try {
     const { eventId } = req.params;
     const boothList = req.body;
@@ -33,20 +52,16 @@ const updateBooth = async (req, res) => {
 
     const updatedBoothList = [];
 
-    // Loop through each booth in the request
     for (const booth of boothList) {
-      // Check if the business ID is in the event's business list
       if (businessIds.includes(booth.business)) {
         try {
-          // Update the business's booth
           const business = await Business.findByIdAndUpdate(
             booth.business,
             { boothNumber: booth.code },
             { new: true },
           );
-          // You can handle the updated business here if needed
-        } catch (err) {
-          console.error(err);
+        } catch (error) {
+          console.error(error);
         }
       }
       updatedBoothList.push(booth);
@@ -57,11 +72,12 @@ const updateBooth = async (req, res) => {
     await event.save();
 
     return res.status(200).json({ message: "Booth List Updated" });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
+  getBooth,
   updateBooth,
 };

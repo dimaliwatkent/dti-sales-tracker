@@ -1,31 +1,18 @@
-import { EventBusiness } from "@/types/EventType";
+import { EventPopulatedType } from "@/types/EventType";
 import { formatDateTime } from "@/utils/formatTime";
 import { eventStatusMap } from "@/constants";
 import BusinessCard from "@/features/admin/management/business/BusinessCard";
 
 import { Card } from "@/components/ui/card";
-import SpinnerText from "@/components/SpinnerWithText";
-
-import { useUserEventListData } from "@/hooks/dataHooks";
-import useDataLoader from "@/hooks/useDataLoader";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const OngoingEventTab = () => {
-  const userEventList = useUserEventListData();
-
-  const { isLoading } = useDataLoader();
-
+interface OngoingEventTabProps {
+  userEventList: EventPopulatedType[];
+}
+const OngoingEventTab = ({ userEventList }: OngoingEventTabProps) => {
   const ongoingEvents = userEventList.filter(
     (event) => event.status === "ongoing" || event.status === "completed",
   );
-
-  if (isLoading) {
-    return (
-      <div>
-        <SpinnerText spin={isLoading} />
-      </div>
-    );
-  }
 
   return (
     <div>
@@ -37,7 +24,7 @@ const OngoingEventTab = () => {
           {!ongoingEvents || ongoingEvents.length === 0 ? (
             <div>Currently no ongoing event</div>
           ) : (
-            ongoingEvents.map((event: EventBusiness) => (
+            ongoingEvents.map((event: EventPopulatedType) => (
               <div key={event._id}>
                 <Card className="p-6 space-y-3">
                   <div className="flex justify-between items-center">
@@ -62,8 +49,15 @@ const OngoingEventTab = () => {
                     <p className="font-bold">Location</p>
                     {event.location}
                   </div>
+
+                  <div className="flex gap-2">
+                    <p className="font-bold">Location Type</p>
+                    {event?.isLocal ? "Local" : "Non-Local"}
+                  </div>
                   <div>
-                    <BusinessCard business={event.business} type="regular" />
+                    {event.business && (
+                      <BusinessCard business={event.business} type="regular" />
+                    )}
                   </div>
                 </Card>
               </div>

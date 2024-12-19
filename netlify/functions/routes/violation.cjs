@@ -5,14 +5,12 @@ const {
   getViolationList,
   getViolation,
   createViolation,
-  updateViolation,
-  archiveViolation,
+  deleteViolation,
 } = require("../controller/violation.cjs");
 
-router.get("/", getViolationList);
-router.post("/", createViolation);
+router.get("/:eventId", getViolationList);
 router.get("/:id", getViolation);
-router.put("/:violationId", updateViolation);
-router.patch("/:id", archiveViolation);
+router.post("/:eventId", createViolation);
+router.delete("/:id", deleteViolation);
 
 module.exports = router;

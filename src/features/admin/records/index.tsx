@@ -1,4 +1,3 @@
-import { useRecordListData } from "@/hooks/dataHooks";
 import SaleTable from "./SaleTable";
 
 import {
@@ -10,68 +9,93 @@ import {
 } from "@/components/ui/select";
 import { useState, useEffect } from "react";
 import SpinnerText from "@/components/SpinnerWithText";
-import { Record } from "@/types/RecordType";
-import useDataLoader from "@/hooks/useDataLoader";
-import useInterval from "@/hooks/useInterval";
-import { intervalTime } from "@/constants";
 import Refresh from "@/components/Refresh";
+import { useGetEventByStatusQuery } from "@/api/event/eventApiSlice";
+
+import { EventShortType } from "@/types/EventType";
+import { useGetEventSaleQuery } from "@/api/sale/saleApiSlice";
+import { EventSaleType } from "@/types/SaleType";
 
 const AdminRecords = () => {
-  const recordList = useRecordListData();
-  const { isLoading, refetchRecordList } = useDataLoader();
+  const status = "ongoing";
 
-  const [activeEvent, setActiveEvent] = useState<Record | undefined>(undefined);
+  const [eventList, setEventList] = useState<EventShortType[]>([]);
+  const [selectedEventId, setSelectedEventId] = useState<string>("");
+  const [selectedEvent, setSelectedEvent] = useState<EventSaleType | undefined>(
+    undefined,
+  );
+
+  const {
+    data: eventListData,
+    isLoading: isEventListLoading,
+    refetch: refetchEventList,
+  } = useGetEventByStatusQuery(status);
 
   useEffect(() => {
-    if (recordList && recordList.length > 0) {
-      setActiveEvent(recordList[0]);
+    if (eventListData?.eventList && eventListData?.eventList.length > 0) {
+      setEventList(eventListData?.eventList);
+      setSelectedEventId(eventListData?.eventList[0]._id);
     }
-  }, [recordList]);
+  }, [eventListData]);
 
-  useInterval(() => {
-    refetchRecordList();
-    console.log("interval refetch");
-  }, intervalTime.adminRecords);
+  const {
+    data: eventWithSaleData,
+    isLoading: isEventWithSaleLoading,
+    refetch: refetchEventWithSale,
+  } = useGetEventSaleQuery(selectedEventId, {
+    skip: selectedEventId === "",
+  });
 
   const handleSelectChange = (value: string) => {
-    const selectedEvent = recordList.find((record) => record.eventId === value);
-    setActiveEvent(selectedEvent);
+    setSelectedEventId(value);
   };
 
-  if (isLoading) {
+  useEffect(() => {
+    if (eventWithSaleData?.event) {
+      setSelectedEvent(eventWithSaleData?.event);
+    }
+  }, [eventWithSaleData, selectedEventId]);
+
+  useEffect(() => {
+    if (selectedEventId !== "" && refetchEventWithSale) {
+      refetchEventWithSale();
+    }
+  }, [selectedEventId, refetchEventWithSale]);
+
+  if (isEventListLoading || isEventWithSaleLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading} />
+        <SpinnerText spin={isEventWithSaleLoading} />
       </div>
     );
   }
 
   return (
     <div>
-      {!recordList || recordList.length === 0 ? (
+      {!eventList || eventList.length === 0 ? (
         <div>No ongoing event</div>
       ) : (
         <div>
           <div className="mb-8 flex gap-2">
             <Select
-              value={activeEvent?.eventId}
+              value={selectedEvent?._id}
               onValueChange={(value) => handleSelectChange(value)}
             >
               <SelectTrigger className="">
                 <SelectValue placeholder="Select Event" />
               </SelectTrigger>
               <SelectContent>
-                {recordList.map((event) => (
-                  <SelectItem key={event.eventId} value={event.eventId}>
-                    {event.eventName}
+                {eventList.map((event) => (
+                  <SelectItem key={event._id} value={event._id}>
+                    {event.title}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Refresh refetch={refetchRecordList} />
+            <Refresh refetch={refetchEventList} />
           </div>
           <div>
-            <SaleTable activeEvent={activeEvent} />
+            <SaleTable selectedEvent={selectedEvent} />
           </div>
         </div>
       )}

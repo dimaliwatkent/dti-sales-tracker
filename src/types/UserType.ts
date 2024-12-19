@@ -1,10 +1,10 @@
-import { Business } from "./BusinessType";
+import { BusinessType } from "./BusinessType";
 /**
  * Interface for user data
  */
-export interface User {
+export interface UserType {
   _id: string;
-  businessList: Business[];
+  businessList: BusinessType[];
   name: string;
   email: string;
   phoneNumber: number;
@@ -12,6 +12,7 @@ export interface User {
   picture: string;
   businessName: string;
   document: string;
+  dtiRegistrationNumber: number;
   refreshToken?: string;
   isArchived: boolean;
   createdAt: Date;

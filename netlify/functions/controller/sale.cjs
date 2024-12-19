@@ -5,48 +5,47 @@ const mongoose = require("mongoose");
 const Event = require("../models/event.cjs");
 const moment = require("moment");
 
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
-};
-
 // GET /sale - return unarchived events
 // GET /sale?isArchived=true
-const getEventSale = async (req, res) => {
+const getEventSale = async (req, res, next) => {
   try {
     const { eventId } = req.params;
-    const isArchived = req.query.isArchived === "true";
 
     if (!eventId || !mongoose.isValidObjectId(eventId)) {
       return res.status(400).json({ message: "Invalid event ID" });
     }
 
-    const sales = await Sale.find({ event: eventId, isArchived })
-      .populate("business")
-      .populate("event")
-      .exec();
+    const event = await Event.findById(eventId)
+      .populate({
+        path: "businessList",
+        select: "_id name saleList",
+        populate: {
+          path: "saleList",
+          select: "_id createdAt totalAmount",
+        },
+      })
+      .select("_id title startDate endDate businessList")
+      .lean();
 
-    if (!sales.length) {
-      return res.status(404).json({ message: "No sales found" });
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
     }
 
-    let eventTotalSale = 0;
+    // Calculate total amount of sales for each business
+    event.businessList.forEach((business) => {
+      const totalAmount = business.saleList.reduce((acc, sale) => {
+        return acc + parseFloat(sale.totalAmount.toString());
+      }, 0);
+      business.totalSale = totalAmount;
+    });
 
-    // sales.forEach((sale) => {
-    //   sale.product.forEach((product) => {
-    //     eventTotalSale += parseFloat(product.totalPrice.toString());
-    //   });
-    // });
-
-    return res.status(200).json({ sale: sales, eventTotalSale });
-  } catch (err) {
-    handleError(res, err);
+    return res.status(200).json({ event });
+  } catch (error) {
+    next(error);
   }
 };
 
-const getRecordData = async (req, res) => {
+const getRecordData = async (req, res, next) => {
   try {
     const isArchived = req.query.isArchived === "true";
 
@@ -117,12 +116,12 @@ const getRecordData = async (req, res) => {
     });
 
     return res.status(200).json({ record: recordData });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const getSale = async (req, res) => {
+const getSale = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -137,47 +136,12 @@ const getSale = async (req, res) => {
     return res
       .status(200)
       .json({ message: "Sale retrieved successfully", sale });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-// const getSalesRecord = async (req, res) => {
-//   try {
-//     const businessId = req.params.businessId;
-//     const business = await Business.findById(businessId);
-//
-//     if (!business) {
-//       return res.status(404).json({ message: "Business not found" });
-//     }
-//
-//     const salesRecord = [];
-//
-//     const eventId = business.event;
-//     const event = await Event.findById(eventId);
-//     const sales = await Sale.find({ event: eventId });
-//
-//     salesRecord.push({
-//       eventId: event._id,
-//       eventTitle: event.title,
-//       sale: sales.map((sale) => ({
-//         _id: sale._id,
-//         business: sale.business,
-//         event: sale.event,
-//         product: sale.product,
-//         isArchived: sale.isArchived,
-//         createdAt: sale.createdAt,
-//         updatedAt: sale.updatedAt,
-//       })),
-//     });
-//
-//     return res.status(200).json({ salesRecord });
-//   } catch (err) {
-//     handleError(res, err);
-//   }
-// };
-
-const generateDailySale = async (req, res) => {
+const generateDailySale = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -243,12 +207,12 @@ const generateDailySale = async (req, res) => {
     }
 
     return res.status(200).json({ sale: sales });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const updateSale = async (req, res) => {
+const updateSale = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -274,101 +238,15 @@ const updateSale = async (req, res) => {
 
     await sale.save();
     return res.status(200).json({ message: "Sale updated successfully", sale });
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-const getAllEventSales = async (req, res) => {
-  try {
-    const { eventId } = req.params;
-
-    if (!eventId || !mongoose.isValidObjectId(eventId)) {
-      return res.status(400).json({ message: "Invalid event ID" });
-    }
-
-    const sales = await Sale.find({ event: eventId })
-      .populate("business")
-      .exec();
-
-    if (!sales.length) {
-      return res.status(404).json({ message: "No sales found" });
-    }
-
-    const businessSales = {};
-
-    sales.forEach((sale) => {
-      const businessName = sale.business.name;
-      const saleDate = moment(sale.createdAt).format("YYYY-MM-DD");
-
-      if (!businessSales[businessName]) {
-        businessSales[businessName] = {
-          businessName,
-          dailySales: [],
-          totalSales: 0,
-        };
-      }
-
-      const dailySale = businessSales[businessName].dailySales.find(
-        (ds) => ds.date === saleDate,
-      );
-
-      let saleTotal = 0;
-      sale.product.forEach((product) => {
-        saleTotal += parseFloat(product.totalPrice.toString());
-      });
-
-      if (dailySale) {
-        dailySale.totalSales += saleTotal;
-      } else {
-        businessSales[businessName].dailySales.push({
-          date: saleDate,
-          totalSales: saleTotal,
-        });
-      }
-
-      businessSales[businessName].totalSales += saleTotal;
-    });
-
-    return res.status(200).json(Object.values(businessSales));
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-// Archive/Unarchive sale
-const archiveSale = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { isArchived } = req.body;
-
-    if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid sale ID" });
-    }
-
-    const sale = await Sale.findById(id);
-    if (!sale) {
-      return res.status(404).json({ message: "Sale not found" });
-    }
-    sale.isArchived = isArchived;
-
-    await sale.save();
-    const action = isArchived ? "archived" : "unarchived";
-    return res
-      .status(200)
-      .json({ message: `Sale ${action} successfully`, sale });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
   getEventSale,
   getRecordData,
-  getAllEventSales,
   getSale,
-  // getSalesRecord,
   generateDailySale,
   updateSale,
-  archiveSale,
 };

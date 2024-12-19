@@ -30,10 +30,10 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Event } from "@/types/EventType";
+import { EventType } from "@/types/EventType";
 
 interface OptionButtonProps {
-  event: Event;
+  event: EventType;
 }
 
 const OptionButton = ({ event }: OptionButtonProps): JSX.Element => {
@@ -70,7 +70,7 @@ const OptionButton = ({ event }: OptionButtonProps): JSX.Element => {
   const handleEdit = async (e: MouseEvent<HTMLElement>) => {
     try {
       e.stopPropagation();
-      navigate("/admin/management/edit-event");
+      navigate(`/admin/management/edit-event/${event._id}`);
       dispatch(setEvent(event));
     } catch (error: unknown) {
       if (error) {

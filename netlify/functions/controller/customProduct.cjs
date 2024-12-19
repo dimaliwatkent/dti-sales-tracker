@@ -1,18 +1,10 @@
 const CustomProduct = require("../models/customProduct.cjs");
-const Business = require("../models/business.cjs");
 const User = require("../models/user.cjs");
 const mongoose = require("mongoose");
 
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
-};
-
 // GET /custom-product - return unarchived product
 // GET /custom-product?isArchived=true
-const getCustomProductList = async (req, res) => {
+const getCustomProductList = async (req, res, next) => {
   try {
     const isArchived = req.query.isArchived === "true";
     const customProduct = await CustomProduct.find({ isArchived });
@@ -23,13 +15,13 @@ const getCustomProductList = async (req, res) => {
       // message: 'Custom products retrieved successfully',
       customProduct,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // get customProduct by id
-const getCustomProduct = async (req, res) => {
+const getCustomProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -45,13 +37,13 @@ const getCustomProduct = async (req, res) => {
       // message: 'Custom product retrieved successfully',
       customProduct,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // get custom products by business id
-const getCustomProductByUser = async (req, res) => {
+const getCustomProductByUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -70,12 +62,12 @@ const getCustomProductByUser = async (req, res) => {
       // message: 'Custom products retrieved successfully',
       customProduct: customProducts,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const addCustomProduct = async (req, res) => {
+const addCustomProduct = async (req, res, next) => {
   try {
     const { eventId, userId } = req.params;
     const productList = req.body.productList;
@@ -97,8 +89,8 @@ const addCustomProduct = async (req, res) => {
       message: "Products updated successfully",
       customProduct,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
@@ -136,7 +128,7 @@ const editCustomProduct = async (req, res) => {
 };
 
 // DELETE /custom-product/:id - delete custom product
-const deleteCustomProduct = async (req, res) => {
+const deleteCustomProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -155,13 +147,13 @@ const deleteCustomProduct = async (req, res) => {
       message: "Product deleted successfully",
       customProduct,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // Archive/Unarchive customProduct
-const archiveCustomProduct = async (req, res) => {
+const archiveCustomProduct = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { isArchived } = req.body;
@@ -183,8 +175,8 @@ const archiveCustomProduct = async (req, res) => {
       message: `Product ${action} successfully`,
       customProduct: customProduct,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 

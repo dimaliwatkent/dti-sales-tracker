@@ -1,8 +1,23 @@
-import { Business } from "./BusinessType";
-
-export interface Sale {
+export interface EventSaleType {
   _id: string;
-  business: Business;
+  title: string;
+  startDate: string;
+  endDate: string;
+  businessList: {
+    _id: string;
+    name: string;
+    totalSale: number;
+    saleList: {
+      _id: string;
+      createdAt: Date;
+      totalAmount: { $numberDecimal: string };
+    }[];
+  }[];
+}
+
+export interface SaleType {
+  _id: string;
+  business: string;
   event: string;
   eventTitle?: string;
   transactionList: Transaction[];

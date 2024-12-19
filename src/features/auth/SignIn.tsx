@@ -12,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -30,7 +29,6 @@ import { setCredentials } from "@/api/auth/authSlice";
 import { signOut } from "@/api/auth/authSlice";
 import { clearBusinessList } from "@/api/business/businessSlice";
 import { clearEventList } from "@/api/event/eventSlice";
-import { clearSaleList } from "@/api/sale/saleSlice";
 import { clearUserList } from "@/api/user/userSlice";
 
 import { signInSchema } from "@/zod/authSchema";
@@ -78,7 +76,7 @@ const SignIn = () => {
         toast({
           variant: "destructive",
           title: (error as { data: { message: string } }).data.message,
-          description: (error as { data: { err: string } }).data.err,
+          description: (error as { data: { error: string } }).data.error,
         });
       }
     }
@@ -90,7 +88,6 @@ const SignIn = () => {
     dispatch(signOut());
     dispatch(clearBusinessList());
     dispatch(clearEventList());
-    dispatch(clearSaleList());
     dispatch(clearUserList());
     dispatch(clearNotication());
   }, [dispatch]);

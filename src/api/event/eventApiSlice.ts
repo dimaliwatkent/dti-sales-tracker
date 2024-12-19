@@ -2,20 +2,24 @@ import { apiSlice } from "../apiSlice";
 
 export const eventApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    getEventList: builder.query({
-      query: () => "/event/",
+    getEventByStatus: builder.query({
+      query: (status) => `/event/status/${status}`,
     }),
 
-    getArchivedEvents: builder.query({
-      query: () => "/event?isArchived=true",
+    getEventWithBusiness: builder.query({
+      query: (eventId) => `/event/business/${eventId}`,
+    }),
+
+    getEventList: builder.query({
+      query: () => "/event/",
     }),
 
     getUserEventList: builder.query({
       query: (userId) => `/event/user/${userId}`,
     }),
 
-    getMonitorEventList: builder.query({
-      query: () => `/event/monitor`,
+    getEventPopulated: builder.query({
+      query: (id) => `/event/populated/${id}`,
     }),
 
     getEvent: builder.query({
@@ -49,10 +53,11 @@ export const eventApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  useGetEventByStatusQuery,
+  useGetEventWithBusinessQuery,
   useGetEventListQuery,
-  useGetArchivedEventsQuery,
   useGetUserEventListQuery,
-  useGetMonitorEventListQuery,
+  useGetEventPopulatedQuery,
   useGetEventQuery,
   useAddEventMutation,
   useEditEventMutation,

@@ -2,19 +2,17 @@ import { useState } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Business } from "@/types/BusinessType";
+import { BusinessType } from "@/types/BusinessType";
 import { Textarea } from "@/components/ui/textarea";
 
 import { useToast } from "@/components/ui/use-toast";
 import { useUpdateStatusMutation } from "@/api/business/businessApiSlice";
-import useDataLoader from "@/hooks/useDataLoader";
-import { setEvent } from "@/api/event/eventSlice";
-import { useDispatch } from "react-redux";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -42,15 +40,13 @@ const FormSchema = z.object({
 });
 
 interface RejectBusinessProps {
-  business: Business;
+  business: BusinessType;
 }
 
 const ForCompletionBusiness = ({ business }: RejectBusinessProps) => {
   const [open, setOpen] = useState(false);
   const { toast } = useToast();
-  const dispatch = useDispatch();
   const [updateStatus, { isLoading }] = useUpdateStatusMutation();
-  const { isLoading: isLoadingRefetch, refetchEventList } = useDataLoader();
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
@@ -70,8 +66,6 @@ const ForCompletionBusiness = ({ business }: RejectBusinessProps) => {
         description: result.message,
       });
 
-      refetchEventList();
-      dispatch(setEvent(result.event));
       setOpen(false);
     } catch (error: unknown) {
       if (error) {
@@ -84,10 +78,10 @@ const ForCompletionBusiness = ({ business }: RejectBusinessProps) => {
     }
   };
 
-  if (isLoading || isLoadingRefetch) {
+  if (isLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading || isLoadingRefetch} />
+        <SpinnerText spin={isLoading} />
       </div>
     );
   }
@@ -100,14 +94,17 @@ const ForCompletionBusiness = ({ business }: RejectBusinessProps) => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>
-              This will mark {business.name} for completion
-            </DialogTitle>
+            <DialogTitle>Are you sure?</DialogTitle>
+
+            <DialogDescription>
+              This will mark <span className="font-bold">{business.name}</span>{" "}
+              for completion
+            </DialogDescription>
             <div className="py-4">
               <Form {...form}>
                 <form
                   onSubmit={form.handleSubmit(onSubmit)}
-                  className="w-2/3 space-y-6"
+                  className="space-y-6"
                 >
                   <FormField
                     control={form.control}

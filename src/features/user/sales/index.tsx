@@ -21,7 +21,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SalesProduct from "./SalesProduct";
 import SalesTransaction from "./SalesTransaction";
 import { Transaction } from "@/types/SaleType";
-import { Sale as SaleType } from "@/types/SaleType";
+import { SaleType } from "@/types/SaleType";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import SpinnerText from "@/components/SpinnerWithText";
@@ -166,7 +166,7 @@ const Sale = () => {
                   </TabsList>
                   <TabsContent value="products">
                     <SalesProduct
-                      activeEventId={activeSale?.event || ""}
+                      businessId={activeSale?.business || ""}
                       isLoading={isLoading}
                       setTransaction={setTransaction}
                       handleUpdateSale={handleUpdateSale}

@@ -5,10 +5,24 @@ export const signUpSchema = z.object({
   name: z.string().min(3, { message: "Name is required" }),
   password: z
     .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%*?&])[A-Za-z\d@#$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+      },
+    ),
   confirmPassword: z
     .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%*?&])[A-Za-z\d@#$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+      },
+    ),
   phoneNumber: z
     .string()
     .min(9, { message: "Phone number must be at least 9 digits" })
@@ -20,13 +34,24 @@ export const signUpSchema = z.object({
     .min(1, { message: "Business name is required" })
     .optional(),
   document: z.string(),
+  dtiRegistrationNumber: z
+    .string()
+    .min(8, { message: "DTI Registration Number must be 8 digits" })
+    .max(8, { message: "DTI Registration Number must be 8 digits" }),
 });
 
 export const signInSchema = z.object({
   email: z.string().email({ message: "Invalid email" }),
   password: z
     .string()
-    .min(8, { message: "Password must be at least 8 characters" }),
+    .min(8, { message: "Password must be at least 8 characters" })
+    .regex(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%*?&])[A-Za-z\d@#$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+      },
+    ),
 });
 
 export const forgotPasswordSchema = z.object({
@@ -42,16 +67,22 @@ export const resetPasswordSchema = z.object({
   // .regex(/^[0-9a-fA-F]+$/, "PIN must be a hexadecimal string"),
   password: z
     .string()
-    .min(8, "Password must be at least 8 characters long")
+    .min(8, { message: "Password must be at least 8 characters" })
     .regex(
-      /^(?=.*[0-9])(?=.*[!@#$%^&*.])/,
-      "Password must contain at least one number and one special character",
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%*?&])[A-Za-z\d@#$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+      },
     ),
   confirmPassword: z
     .string()
-    .min(8, "Password must be at least 8 characters long")
+    .min(8, { message: "Password must be at least 8 characters" })
     .regex(
-      /^(?=.*[0-9])(?=.*[!@#$%^&*.])/,
-      "Password must contain at least one number and one special character",
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%*?&])[A-Za-z\d@#$!%*?&]{8,}$/,
+      {
+        message:
+          "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character",
+      },
     ),
 });

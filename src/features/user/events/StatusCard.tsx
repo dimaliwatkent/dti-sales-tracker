@@ -1,40 +1,31 @@
 import ProcessCard from "./ProcessCard";
-import { setEvent } from "@/api/event/eventSlice";
-import { Business } from "@/types/BusinessType";
-import { Event } from "@/types/EventType";
-import { useDispatch } from "react-redux";
+import { BusinessType } from "@/types/BusinessType";
 import { useNavigate } from "react-router-dom";
 
 import { applicationStatusMap } from "@/constants";
 
 import { Button } from "@/components/ui/button";
-import { setActiveBusiness } from "@/api/business/businessSlice";
 
 interface StatusCardProps {
-  business: Business | undefined;
-  event: Event;
+  business: BusinessType | undefined;
+  eventId: string;
 }
-const StatusCard = ({ business, event }: StatusCardProps) => {
+const StatusCard = ({ business, eventId }: StatusCardProps) => {
   const status = business?.applicationStatus;
   const message = business?.statusMessage;
 
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
   const handleEventClick = () => {
-    navigate("/events/view-event");
-    dispatch(setEvent(event));
+    navigate(`/events/view-event/${eventId}`);
   };
 
   const handleApply = () => {
-    navigate("/events/application");
-    dispatch(setEvent(event));
+    navigate(`/events/application/${eventId}`);
   };
 
   const handleComply = () => {
-    navigate("/events/edit-application");
-    dispatch(setEvent(event));
-    dispatch(setActiveBusiness(business));
+    navigate(`/events/edit-application/${eventId}`);
   };
 
   if (!business) {

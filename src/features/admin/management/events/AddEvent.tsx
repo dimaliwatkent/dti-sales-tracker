@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -17,15 +16,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 import { addEventSchema } from "@/zod/eventSchema";
 import { useAddEventMutation } from "@/api/event/eventApiSlice";
-import useDataLoader from "@/hooks/useDataLoader";
 import SpinnerText from "@/components/SpinnerWithText";
 
 const AddEvent = () => {
   const { toast } = useToast();
   const [addEvent, { isLoading }] = useAddEventMutation();
-  const { isLoading: isLoadingRefetch, refetchEventList } = useDataLoader();
 
   const form = useForm<z.infer<typeof addEventSchema>>({
     resolver: zodResolver(addEventSchema),
@@ -38,7 +43,8 @@ const AddEvent = () => {
       applicationEnd: "",
       status: "upcoming",
       businessList: [],
-      booth: [],
+      isLocal: undefined,
+      boothList: [],
     },
   });
 
@@ -62,7 +68,6 @@ const AddEvent = () => {
         description: result.message,
       });
 
-      refetchEventList();
       navigate(-1);
     } catch (error: unknown) {
       if (error) {
@@ -75,10 +80,10 @@ const AddEvent = () => {
     }
   };
 
-  if (isLoading || isLoadingRefetch) {
+  if (isLoading) {
     return (
       <div>
-        <SpinnerText spin={isLoading || isLoadingRefetch} />
+        <SpinnerText spin={isLoading} />
       </div>
     );
   }
@@ -106,7 +111,6 @@ const AddEvent = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="location"
@@ -114,8 +118,36 @@ const AddEvent = () => {
               <FormItem>
                 <FormLabel>Location</FormLabel>
                 <FormControl>
-                  <Input placeholder="Boac, Marinduque"{...field} />
+                  <Input placeholder="Boac, Marinduque" {...field} />
                 </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="isLocal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Location Type</FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(value === "local")}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a Location Type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem key="local" value="local">
+                      Local
+                    </SelectItem>
+                    <SelectItem key="non-local" value="non-local">
+                      Non-Local
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -134,7 +166,6 @@ const AddEvent = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="endDate"
@@ -148,7 +179,6 @@ const AddEvent = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="applicationStart"
@@ -162,7 +192,6 @@ const AddEvent = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name="applicationEnd"
@@ -176,7 +205,6 @@ const AddEvent = () => {
               </FormItem>
             )}
           />
-
           <div className="flex gap-4 w-full justify-end items-center">
             <Button
               type="button"

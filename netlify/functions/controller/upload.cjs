@@ -23,15 +23,8 @@ const s3 = new S3Client({
   region: bucketRegion,
 });
 
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
-};
-
 // upload profile picture
-const uploadProfile = async (req, res) => {
+const uploadProfile = async (req, res, next) => {
   try {
     const base64Image = req.body.image;
     const uploaderId = req.body.uploaderId;
@@ -63,12 +56,12 @@ const uploadProfile = async (req, res) => {
     return res
       .status(201)
       .json({ message: "Profile picture added successfully", user: user });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
-const deleteProfile = async (req, res) => {
+const deleteProfile = async (req, res, next) => {
   try {
     const { userId } = req.params;
 
@@ -94,8 +87,8 @@ const deleteProfile = async (req, res) => {
     return res
       .status(201)
       .json({ message: "Profile picture removed successfully" });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 

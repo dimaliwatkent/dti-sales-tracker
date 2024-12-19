@@ -1,16 +1,10 @@
+const Event = require("../models/event.cjs");
 const Business = require("../models/business.cjs");
 const BusinessViolation = require("../models/businessViolation.cjs");
 const Violation = require("../models/violation.cjs");
 const mongoose = require("mongoose");
 
 const { addNotification } = require("../controller/notification.cjs");
-
-// handle error
-const handleError = (res, err) => {
-  return res
-    .status(500)
-    .json({ message: "An error occurred", err: err.message });
-};
 
 function getViolationMessage(violation) {
   if (violation.count === 1) {
@@ -22,8 +16,45 @@ function getViolationMessage(violation) {
   }
 }
 
+// get business list
+
+const getBusinessListViolation = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+
+    if (!eventId || !mongoose.isValidObjectId(eventId)) {
+      return res.status(400).json({ message: "Invalid event violation ID" });
+    }
+
+    const event = await Event.findById(eventId)
+      .populate({
+        path: "businessList",
+        select: "_id name boothNumber violationList",
+      })
+      .exec();
+
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const filteredBusinessList = event.businessList.filter(
+      (business) =>
+        Array.isArray(business.violationList) &&
+        business.violationList.length > 0,
+    );
+
+    return res.status(200).json({
+      message: "Business violations retrieved successfully",
+      businessList: filteredBusinessList,
+      eventTitle: event.title,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // API endpoint to add a violation to a business xxx
-const addBusinessViolation = async (req, res) => {
+const addBusinessViolation = async (req, res, next) => {
   try {
     const businessId = req.params.businessId;
     const violation = req.body;
@@ -48,6 +79,7 @@ const addBusinessViolation = async (req, res) => {
           description: violation.description,
         },
         monitor: violation.monitor,
+        message: violation.message,
         count: 1,
       });
 
@@ -78,6 +110,7 @@ const addBusinessViolation = async (req, res) => {
     } else {
       // Increment the count of the existing business violation document
       existingViolation.count++;
+      existingViolation.message = violation.message;
       await existingViolation.save();
 
       const newBusiness =
@@ -94,17 +127,17 @@ const addBusinessViolation = async (req, res) => {
 
       // Return a success response
       res.json({
-        message: "Violation count incremented successfully",
+        message: "Violation updated successfully",
         business: newBusiness,
       });
     }
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // get violation list of business xxx
-const getBusinessViolationList = async (req, res) => {
+const getBusinessViolationList = async (req, res, next) => {
   try {
     const { businessId } = req.params;
 
@@ -112,21 +145,25 @@ const getBusinessViolationList = async (req, res) => {
       return res.status(400).json({ message: "Invalid business violation ID" });
     }
 
-    const violationList = await BusinessViolation.find({
-      business: businessId,
-    });
+    const business = await Business.findById(businessId)
+      .select("_id name logo boothNumber violationList")
+      .populate({
+        path: "violationList",
+        populate: { path: "monitor", select: "name" },
+      })
+      .exec();
 
     return res.status(200).json({
       message: "Business violations retrieved successfully",
-      violationList,
+      business,
     });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 // mark violation as paid xxx
-const markAsPaid = async (req, res) => {
+const markAsPaid = async (req, res, next) => {
   try {
     const { businessId } = req.params;
     const { violationIds } = req.body;
@@ -160,112 +197,13 @@ const markAsPaid = async (req, res) => {
       message: "Violations marked as paid successfully",
       updatedCount: updatedViolations.nModified,
     });
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-// get business violation by id
-const getBusinessViolation = async (req, res) => {
-  try {
-    const { businessViolationId } = req.params;
-
-    if (
-      !businessViolationId ||
-      !mongoose.isValidObjectId(businessViolationId)
-    ) {
-      return res.status(400).json({ message: "Invalid business violation ID" });
-    }
-
-    const businessViolation =
-      await BusinessViolation.findById(businessViolationId);
-
-    if (!businessViolation) {
-      return res.status(404).json({ message: "No business violation found" });
-    }
-
-    return res.status(200).json({
-      message: "Business violation retrieved successfully",
-      businessViolation,
-    });
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-// create business violation
-const createBusinessViolation = async (req, res) => {
-  try {
-    const { businessId } = req.params;
-    const { violationId, imageProof } = req.body;
-
-    if (!businessId || !mongoose.isValidObjectId(businessId)) {
-      return res.status(400).json({ message: "Invalid business ID" });
-    }
-
-    if (!violationId || !mongoose.isValidObjectId(violationId)) {
-      return res.status(400).json({ message: "Invalid violation ID" });
-    }
-
-    const existingBusiness = await Business.findById(businessId);
-    const existingViolation = await Violation.findById(violationId);
-
-    if (!existingBusiness) {
-      return res.status(404).json({ message: "No business found" });
-    }
-    if (!existingViolation) {
-      return res.status(404).json({ message: "No violation found" });
-    }
-
-    const newBusinessViolation = new BusinessViolation({
-      business: businessId,
-      violation: violationId,
-      imageProof,
-    });
-
-    await newBusinessViolation.save();
-
-    existingBusiness.violationList.push(newBusinessViolation._id);
-    await existingBusiness.save();
-
-    return res.status(201).json({
-      message: "Business violation created successfully",
-      businessViolation: newBusinessViolation,
-    });
-  } catch (err) {
-    handleError(res, err);
-  }
-};
-
-// pay business violation
-const payBusinessViolation = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    if (!id || !mongoose.isValidObjectId(id)) {
-      return res.status(400).json({ message: "Invalid business violation ID" });
-    }
-
-    const existingBusinessViolation = await BusinessViolation.findById(id);
-
-    if (!existingBusinessViolation) {
-      return res.status(404).json({ message: "No business violation found" });
-    }
-
-    existingBusinessViolation.isPaid = true;
-    existingBusinessViolation.datePaid = Date.now();
-    await existingBusinessViolation.save();
-
-    return res.status(200).json({
-      message: "Business violation paid successfully",
-      businessViolation: existingBusinessViolation,
-    });
-  } catch (err) {
-    handleError(res, err);
+  } catch (error) {
+    next(error);
   }
 };
 
 module.exports = {
+  getBusinessListViolation,
   addBusinessViolation,
   getBusinessViolationList,
   markAsPaid,

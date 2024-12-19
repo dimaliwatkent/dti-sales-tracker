@@ -1,25 +1,22 @@
 import { useState } from "react";
-import { selectEvent } from "@/api/event/eventSlice";
-import { useSelector } from "react-redux";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/components/ui/use-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import AgreementForm from "./AgreementForm";
 
 import {
   Form,
-  FormControl,
-  FormDescription,
+  // FormControl,
+  // FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // form fields
@@ -38,10 +35,12 @@ import ReviewForm from "./ReviewForm";
 import SpinnerText from "@/components/SpinnerWithText";
 
 import AddressForm from "./form-fields/AddressForm";
+import ViewProducts from "../products/ViewProducts";
+import { formatCurrency } from "@/utils/formatCurrency";
 
 const ApplicationForm = () => {
-  const event = useSelector(selectEvent);
-  const { refetchUserData, refetchUserEventList } = useDataLoader();
+  const { id } = useParams();
+  const { refetchUserData } = useDataLoader();
   const [agreed, setAgreed] = useState(false);
 
   const { toast } = useToast();
@@ -50,7 +49,7 @@ const ApplicationForm = () => {
   const form = useForm<z.infer<typeof applicationSchema>>({
     resolver: zodResolver(applicationSchema),
     defaultValues: {
-      eventId: event?._id,
+      eventId: id,
       userId: user?._id,
       name: "",
       address: "",
@@ -68,12 +67,11 @@ const ApplicationForm = () => {
       logisticServiceProvider: [],
       industryClassification: [],
       productLineService: [],
-      product: "",
       brandName: "",
       category: [],
       type: "",
+      productList: [],
       assetSize: "",
-      targetSale: 0,
       fulltimeEmployee: 0,
       parttimeEmployee: 0,
       dateOfEstablishment: "",
@@ -93,6 +91,7 @@ const ApplicationForm = () => {
     //     </pre>
     //   ),
     // });
+
     try {
       const result = await addBusiness(data).unwrap();
       navigate("/events");
@@ -101,7 +100,6 @@ const ApplicationForm = () => {
         title: result.message,
         description: "Please wait for confirmation",
       });
-      refetchUserEventList();
       refetchUserData();
     } catch (error: unknown) {
       if (error) {
@@ -124,10 +122,6 @@ const ApplicationForm = () => {
 
   return (
     <div>
-      <div className="my-6 flex flex-col items-center">
-        <p className="text-2xl font-bold">{event.title}</p>
-      </div>
-
       <div className="mt-4 mb-4">
         <p className="text-xl font-bold">Application Form</p>
       </div>
@@ -148,28 +142,10 @@ const ApplicationForm = () => {
             <div>
               <div className="mb-2">
                 <FormLabel>Address</FormLabel>
+                <FormMessage />
               </div>
               <AddressForm form={form} />
             </div>
-
-            {/*
-            <TextInputField
-              name="address"
-              label="Address"
-              type="text"
-              placeholder=""
-              description="Barangay, Municipality, Province"
-              form={form}
-            />
-
-            <TextInputField
-              name="region"
-              label="Region"
-              type="text"
-              placeholder=""
-              form={form}
-            />
-            */}
 
             <TextInputField
               name="zip"
@@ -288,27 +264,6 @@ const ApplicationForm = () => {
               form={form}
             />
 
-            <FormField
-              control={form.control}
-              name="product"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Products</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Apple, Banana, Coconut"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    List here all your products seperated by comma
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <TextInputField
               name="brandName"
               label="Brand Name"
@@ -358,13 +313,6 @@ const ApplicationForm = () => {
             />
 
             <TextInputField
-              name="targetSale"
-              label="Target Sale"
-              type="number"
-              form={form}
-            />
-
-            <TextInputField
               name="fulltimeEmployee"
               label="Number of Full-time Employees"
               type="number"
@@ -396,6 +344,42 @@ const ApplicationForm = () => {
               accept="image/*"
               form={form}
             />
+
+            <p className="text-xl font-bold">Products</p>
+
+            <FormField
+              control={form.control}
+              name="productList"
+              render={({ field }) => (
+                <FormItem>
+                  {field.value.length > 0 ? (
+                    field.value.map((product, index) => (
+                      <div key={index} className="border rounded-lg p-2">
+                        <div className=" flex justify-between">
+                          <p>{product.name}</p>
+                          <p>{formatCurrency(product.price.$numberDecimal)}</p>
+                        </div>
+                        <p className="text-sm text-primary/60">
+                          {product.description}
+                        </p>
+                        {product.picture && (
+                          <img
+                            src={product.picture}
+                            alt={product.name}
+                            className="aspect-square h-20 object-cover rounded-lg"
+                          />
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div>No product added</div>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <ViewProducts form={form} />
 
             <p className="text-xl font-bold">Requirements</p>
 
@@ -440,10 +424,15 @@ const ApplicationForm = () => {
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
               form={form}
             />
-
             <FileField
-              name="productPhotosFile"
-              label="Photos of the products to be sold"
+              name="birPermit"
+              label="BIR Permit"
+              accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+              form={form}
+            />
+            <FileField
+              name="mayorPermit"
+              label="Mayor's Permit"
               accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
               form={form}
             />

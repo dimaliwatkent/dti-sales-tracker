@@ -99,8 +99,21 @@ const ForgotPassword = () => {
             />
 
             <div className="pt-4">
-              <Button type="submit" disabled={isLoading} className="w-full ">
+              <Button
+                type="submit"
+                disabled={isLoading}
+                className="w-full mb-4 "
+              >
                 {isLoading ? "Loading..." : "Send Code"}
+              </Button>
+
+              <Button
+                type="button"
+                variant="secondary"
+                className="w-full"
+                onClick={() => navigate(-1)}
+              >
+                Go Back
               </Button>
             </div>
           </form>

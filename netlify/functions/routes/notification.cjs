@@ -4,14 +4,12 @@ const router = express.Router();
 const {
   createNotification,
   getNotifications,
-  updateNotification,
   deleteNotification,
   markAsRead,
 } = require("../controller/notification.cjs");
 
 router.post("/", createNotification);
 router.get("/:userId", getNotifications);
-router.put("/:id", updateNotification);
 router.delete("/:id", deleteNotification);
 router.patch("/mark-as-read/:id", markAsRead);
 
