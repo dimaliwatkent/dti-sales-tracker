@@ -2,7 +2,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { RootState } from "./store";
 
 const baseQuery = fetchBaseQuery({
-  baseUrl: "https://expo-track.netlify.app/.netlify/functions/api/",
+  baseUrl: "https://expotrack-test.netlify.app/.netlify/functions/api/",
   credentials: "include",
   mode: "cors",
 
