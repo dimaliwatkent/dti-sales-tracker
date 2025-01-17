@@ -60,6 +60,11 @@ const StatusCard = ({ business, eventId }: StatusCardProps) => {
           <Button disabled>Applied</Button>
         </div>
       )}
+      <div>
+        <Button onClick={() => handleEventClick()}>
+          Download Requirements
+        </Button>
+      </div>
     </div>
   );
 };

@@ -27,10 +27,12 @@ import {
 import { addEventSchema } from "@/zod/eventSchema";
 import { useAddEventMutation } from "@/api/event/eventApiSlice";
 import SpinnerText from "@/components/SpinnerWithText";
+import { useState } from "react";
 
 const AddEvent = () => {
   const { toast } = useToast();
   const [addEvent, { isLoading }] = useAddEventMutation();
+  const [fileNames, setFileNames] = useState<string[]>([]);
 
   const form = useForm<z.infer<typeof addEventSchema>>({
     resolver: zodResolver(addEventSchema),
@@ -43,6 +45,7 @@ const AddEvent = () => {
       applicationEnd: "",
       status: "upcoming",
       businessList: [],
+      documentList: [],
       isLocal: undefined,
       boothList: [],
     },
@@ -89,7 +92,7 @@ const AddEvent = () => {
   }
 
   return (
-    <div className="flex flex-col justify-start items-start">
+    <div className="flex flex-col justify-start items-start pb-32">
       <div>
         <p className="text-3xl font-bold mb-6">Add Event</p>
       </div>
@@ -205,6 +208,55 @@ const AddEvent = () => {
               </FormItem>
             )}
           />
+
+          <FormField
+            control={form.control}
+            name="documentList"
+            render={() => (
+              <FormItem>
+                <FormLabel>Requirements</FormLabel>
+                <FormControl>
+                  <Input
+                    type="file"
+                    multiple
+                    accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                      const files = e.target.files;
+                      const base64Files: string[] = [];
+                      const newFileNames: string[] = [];
+
+                      // Convert each file to base64
+                      if (files) {
+                        Array.from(files).forEach((file: File) => {
+                          newFileNames.push(file.name);
+                          const reader = new FileReader();
+                          reader.readAsDataURL(file);
+                          reader.onload = () => {
+                            if (reader.result) {
+                              const base64String = `filename: ${file.name}; ${reader.result as string}`;
+                              base64Files.push(base64String);
+                              form.setValue("documentList", base64Files);
+                            }
+                          };
+                        });
+                      }
+                      setFileNames(newFileNames);
+                    }}
+                    className="block w-full text-sm h-12
+            file:mr-4 file:px-4 file:py-2
+            file:rounded-md file:border-0
+            file:text-sm file:font-semibold
+            file:bg-primary file:text-accent
+            hover:file:bg-primary/50"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          {fileNames &&
+            fileNames.map((name, index) => <div key={index}>{name}</div>)}
+
           <div className="flex gap-4 w-full justify-end items-center">
             <Button
               type="button"

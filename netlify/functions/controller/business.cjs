@@ -305,8 +305,16 @@ const applicationStatus = async (req, res, next) => {
 
       await sendEmail(
         existingBusiness.user.email,
-        "Business Application Approved",
-        `<p>Your business application for ${event.title} has been approved. Congratulations!</p>`,
+        `<h1>${event.title} ${event.startDate.getFullYear()}</h1>`,
+        `<p>The application for this company in the upcomming Trade Fair ${
+          event.title
+        } ${event.startDate.getFullYear()} has been approved by the organizing committee subject to its compliance to the rulesand regulations of the event.</p>
+        <p>Company name: ${existingBusiness.name}</p>
+        <p>Registration number: ${event.businessList.length}</p>
+        <br/>
+        <strong>RONIEL M. MACATOL</strong>
+        <p>Provincial Director</p>
+        <p>DTI Marinduque</p>`,
       );
     } else if (applicationStatus === "forcompletion") {
       await sendEmail(

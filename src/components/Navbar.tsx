@@ -63,7 +63,7 @@ const Navbar = (): JSX.Element => {
             <img src={logo} className="h-6 m-1" />{" "}
           </div>
           <div>
-            <p className="text-sm font-bold">EXPO TRACK</p>
+            <p className="text-sm font-bold">TRADE FAIR MS</p>
             <p className="text-xs">DTI-Marinduque</p>
           </div>
         </div>

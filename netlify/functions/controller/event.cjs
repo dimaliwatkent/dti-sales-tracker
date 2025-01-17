@@ -3,6 +3,64 @@ const Event = require("../models/event.cjs");
 const Sale = require("../models/sale.cjs");
 const mongoose = require("mongoose");
 const { addEventSchema } = require("../zod/eventSchema.cjs");
+const cron = require("node-cron");
+
+const {
+  uploadToS3,
+  bucketName,
+  bucketRegion,
+} = require("../utils/s3Client.cjs");
+
+// used to auto update the event status
+const updateEventStatus = async () => {
+  try {
+    const events = await Event.find().exec();
+    await Promise.all(
+      events.map(async (event) => {
+        const now = new Date(
+          new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }),
+        );
+        const applicationStart = new Date(event.applicationStart);
+        const applicationEnd = new Date(event.applicationEnd);
+        const startDate = new Date(event.startDate);
+        const endDate = new Date(event.endDate);
+
+        if (
+          !isNaN(applicationStart) &&
+          !isNaN(applicationEnd) &&
+          !isNaN(startDate) &&
+          !isNaN(endDate)
+        ) {
+          if (
+            now >= applicationStart &&
+            now <= applicationEnd.setDate(applicationEnd.getDate())
+          ) {
+            event.status = "applicationOpen";
+          } else if (now >= startDate && now <= endDate) {
+            event.status = "ongoing";
+          } else if (now < startDate) {
+            event.status = "upcoming";
+          } else if (now > endDate) {
+            event.status = "completed";
+          }
+        }
+
+        try {
+          await event.save();
+        } catch (err) {
+          console.error(err);
+        }
+      }),
+    );
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+// run every 12 am in asia manila
+cron.schedule("0 16 * * *", () => {
+  updateEventStatus();
+});
 
 // status "applicationOpen", "upcoming", "ongoing", "completed", "cancelled", "postponed",
 const getEventByStatus = async (req, res, next) => {
@@ -128,47 +186,10 @@ const getEventWithBusiness = async (req, res, next) => {
 // GET /event - return unarchived events
 // GET /event?isArchived=true
 const getEventList = async (req, res, next) => {
+  updateEventStatus();
   try {
     const isArchived = req.query.isArchived === "true";
     let events = await Event.find({ isArchived }).exec();
-    events = await Promise.all(
-      events.map(async (event) => {
-        const now = new Date(
-          new Date().toLocaleString("en-US", { timeZone: "Asia/Manila" }),
-        );
-        const applicationStart = new Date(event.applicationStart);
-        const applicationEnd = new Date(event.applicationEnd);
-        const startDate = new Date(event.startDate);
-        const endDate = new Date(event.endDate);
-
-        if (
-          !isNaN(applicationStart) &&
-          !isNaN(applicationEnd) &&
-          !isNaN(startDate) &&
-          !isNaN(endDate)
-        ) {
-          if (
-            now >= applicationStart &&
-            now <= applicationEnd.setDate(applicationEnd.getDate() + 1)
-          ) {
-            event.status = "applicationOpen";
-          } else if (now >= startDate && now <= endDate) {
-            event.status = "ongoing";
-          } else if (now < startDate) {
-            event.status = "upcoming";
-          } else if (now > endDate) {
-            event.status = "completed";
-          }
-        }
-
-        try {
-          await event.save();
-        } catch (err) {
-          handleError(res, err);
-        }
-        return event;
-      }),
-    );
 
     if (!events.length) {
       return res.status(404).json({ message: "No events found" });
@@ -333,6 +354,38 @@ const addEvent = async (req, res, next) => {
       isLocal,
       boothList,
     });
+
+    const uploadedFiles = await Promise.all(
+      documentList.map(async (document) => {
+        const binaryFile = Buffer.from(document.split(",")[1], "base64");
+        const fileType = document.split(";")[1].split(":")[1];
+        const fileExtension = fileType.split("/")[1];
+        const rawFileName = document.split(";")[0].split(":")[1];
+
+        const fileName = `documents/${title}/${rawFileName}.${fileExtension}`;
+
+        const params = {
+          Bucket: bucketName,
+          Key: fileName,
+          Body: binaryFile,
+          ContentType: fileType,
+        };
+
+        try {
+          await uploadToS3(params);
+        } catch (error) {
+          return res.status(500).json({
+            message: "Failed to upload document",
+            error: error.name,
+          });
+        }
+        const docUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/${fileName}`;
+        return { filename: rawFileName, url: docUrl };
+      }),
+    );
+
+    newEvent.documentList = uploadedFiles;
+
     await newEvent.save();
 
     return res

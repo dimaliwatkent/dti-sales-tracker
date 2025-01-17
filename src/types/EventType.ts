@@ -38,7 +38,7 @@ export interface EventPopulatedType {
   applicantList: BusinessType[];
   title: string;
   location: string;
-  documentList: string[];
+  documentList: { filename: string; url: string }[];
   startDate: string;
   endDate: string;
   applicationStart: string;
@@ -57,7 +57,7 @@ export interface EventType {
   title: string;
   logo: string;
   location: string;
-  documentList: string[];
+  documentList: { filename: string; url: string }[];
   startDate: string;
   endDate: string;
   applicationStart: string;
@@ -76,7 +76,7 @@ export interface EventBusiness {
   title: string;
   logo: string;
   location: string;
-  documentList: string[];
+  documentList: { filename: string; url: string }[];
   startDate: string;
   endDate: string;
   applicationStart: string;

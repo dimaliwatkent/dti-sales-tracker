@@ -32,7 +32,7 @@ const Registration = () => {
   return (
     <div className="">
       <div className="flex flex-col items-center justify-center mt-6">
-        <p className="text-2xl font-bold mb-4">Welcome to Expo Track!</p>
+        <p className="text-2xl font-bold mb-4">Welcome to TRADE FAIR MS!</p>
         <p className="text-xl font-bold mb-4">Account Registration</p>
         <div className="flex flex-col items-center justify-center text-primary/70">
           {newUserRole === "rejected" ? (

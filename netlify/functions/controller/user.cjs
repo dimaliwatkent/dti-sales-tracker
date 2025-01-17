@@ -73,14 +73,31 @@ const changeRole = async (req, res, next) => {
     if (role === "rejected") {
       await sendEmail(
         existingUser.email,
-        "Registration Rejected",
-        `<h1>Hello ${existingUser.name},</h1><p>We regret to inform you that your registration has been rejected.</p>`,
+        "<h1>Registration Rejected</h1>",
+        `<p>Hello ${existingUser.name},</h1><p>We regret to inform you that your registration has been rejected.</p>
+        <br/>
+        <p>Sincerely,</p>
+        <p>DTI - Marinduque</p>`,
+      );
+    } else if (role === "user") {
+      await sendEmail(
+        existingUser.email,
+        "<h1>Registration Approved</h1>",
+        `<p>Good day Exhibitor,</p>
+        <p>       Your account registration for Trade Fair Management System Marinduque has been <strong>APPROVED</strong>. Your role is now updated. You may see event that are open for application for you to apply. Thank you.</p>
+        <br/>
+        <p>Sincerely,</p>
+        <p>DTI - Marinduque</p>`,
       );
     } else {
       await sendEmail(
         existingUser.email,
-        "Role Updated",
-        `<h1>Hello ${existingUser.name},</h1><p>Your role has been updated to ${role}</p>`,
+        "<h1>Registration Approved</h1>",
+        `<p>Good day Exhibitor,</p>
+        <p>       Your account registration for Trade Fair Management System Marinduque has been <strong>APPROVED</strong>. Your role is now updated into ${role}. Thank you.</p>
+        <br/>
+        <p>Sincerely,</p>
+        <p>DTI - Marinduque</p>`,
       );
     }
 

@@ -123,7 +123,7 @@ const editCustomProduct = async (req, res) => {
       customProduct,
     });
   } catch (err) {
-    handleError(res, err);
+    next(res, err);
   }
 };
 

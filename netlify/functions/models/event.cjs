@@ -25,7 +25,12 @@ const EventSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    documentList: [{ type: String }],
+    documentList: [
+      {
+        filename: String,
+        url: String,
+      },
+    ],
     startDate: {
       type: Date,
     },

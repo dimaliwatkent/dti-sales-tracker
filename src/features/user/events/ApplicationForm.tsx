@@ -383,6 +383,13 @@ const ApplicationForm = () => {
 
             <p className="text-xl font-bold">Requirements</p>
 
+            <div onClick={() => navigate(`/events/view-event/${id}`)}>
+              <p>
+                Download requirements templates{" "}
+                <span className="text-blue-500">here</span>.
+              </p>
+            </div>
+
             <FileField
               name="waiverFile"
               label="Waiver of Claims"

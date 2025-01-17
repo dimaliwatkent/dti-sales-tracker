@@ -102,6 +102,39 @@ const ViewEvent = (): JSX.Element => {
         </div>
       </div>
 
+      <div className="mb-4">
+        <p className="text-xl font-bold mb-2" id="requirements">
+          Requirements
+        </p>
+
+        <div className="space-y-3">
+          {event?.documentList && event?.documentList.length > 0 ? (
+            event?.documentList.map((doc, index) => (
+              <div key={index}>
+                {doc && (
+                  <div className="flex justify-between items-center gap-2">
+                    <p className="text-primary/70">{doc.filename}</p>
+                    <div className="flex gap-2">
+                      <div className="text-left bg-primary h-8 px-4 flex items-center justify-center rounded-lg hover:scale-105">
+                        <a
+                          href={doc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <p className="text-background">View File</p>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div>No added requirements.</div>
+          )}
+        </div>
+      </div>
+
       <div>
         <p className="text-xl font-bold mb-2">Businesses</p>
         <Tabs

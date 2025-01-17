@@ -109,7 +109,7 @@ const SignUp = () => {
           <img src={logo} className="h-10 p-1" />
         </div>
         <div>
-          <p className="text-3xl font-bold">EXPO TRACK</p>
+          <p className="text-3xl font-bold">TRADE FAIR MS</p>
         </div>
       </div>
       <Card className="w-[300px] p-6">

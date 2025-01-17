@@ -13,7 +13,7 @@ async function sendEmail(to, subject, htmlContent) {
     });
 
     const mailOptions = {
-      from: `"Expo Management System" <${process.env.EMAIL}>`,
+      from: `"Trade Fair Management System" <${process.env.EMAIL}>`,
       to: to,
       subject: subject,
       html: htmlContent,

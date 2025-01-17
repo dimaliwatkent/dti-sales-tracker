@@ -23,7 +23,7 @@ const AgreementForm = () => {
         </DialogTrigger>
         <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>EXPO TRACK REGISTRATION AGREEMENT</DialogTitle>
+            <DialogTitle>TRADE FAIR MS REGISTRATION AGREEMENT</DialogTitle>
           </DialogHeader>
           <ScrollArea className="w-full h-[calc(100vh-200px)]  overflow-y-auto p-4 ">
             <div className="space-y-2">
@@ -54,8 +54,8 @@ const AgreementForm = () => {
               <p>
                 I, the undersigned, voluntarily waive all claims against loss or
                 damage of any of our equipment, accessories, and other materials
-                displayed or shared through Expo Track, in connection with any
-                events or activities facilitated by the application.
+                displayed or shared through TRADE FAIR MS, in connection with
+                any events or activities facilitated by the application.
               </p>
               <p>
                 The Department of Trade and Industry Marinduque, represented by

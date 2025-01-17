@@ -10,7 +10,7 @@ const defaultViolationList = [
   {
     name: "Back-out",
     fee: 1000,
-    description: "1-year suspension from Marinduque Expo plus fine",
+    description: "1-year suspension from Marinduque Trade Fair plus fine",
   },
   {
     name: "Tardiness",
@@ -61,12 +61,12 @@ const defaultViolationList = [
     name: "Selling Other Products",
     fee: 1000,
     description:
-      "Selling products other than those declared in the application by the exhibitor and Selling not a Marinduque product (1-year suspension from Marinduque Expo plus fine)",
+      "Selling products other than those declared in the application by the exhibitor and Selling not a Marinduque product (1-year suspension from Marinduque Trade Fair plus fine)",
   },
   {
     name: "Early Egress",
     fee: 1000,
-    description: "1-year suspension from Marinduque Expo plus fine",
+    description: "1-year suspension from Marinduque Trade Fair plus fine",
   },
   {
     name: "Nonpayment: Electricity Fee",

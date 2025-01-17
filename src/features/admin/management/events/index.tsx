@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { EventType } from "@/types/EventType";
 import { eventStatusMap } from "@/constants";
@@ -62,11 +63,18 @@ const Events = (): JSX.Element => {
     navigate("/admin/management/add-event");
   };
 
-  const filteredEventList = eventList.filter(
-    (event) =>
-      event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      (selectedStatus !== "all" ? event.status === selectedStatus : true),
-  );
+  const filteredEventList = useMemo(() => {
+    return eventList
+      .filter(
+        (event) =>
+          event.title.toLowerCase().includes(searchTerm.toLowerCase()) &&
+          (selectedStatus !== "all" ? event.status === selectedStatus : true),
+      )
+      .sort(
+        (a, b) =>
+          new Date(b.startDate).getTime() - new Date(a.startDate).getTime(),
+      );
+  }, [eventList, searchTerm, selectedStatus]);
 
   useEffect(() => {
     refetchEventList();
@@ -100,6 +108,7 @@ const Events = (): JSX.Element => {
           <SelectContent>
             <SelectGroup>
               <SelectItem value="all">All</SelectItem>
+              <SelectItem value="upcoming">Upcoming</SelectItem>
               <SelectItem value="applicationOpen">
                 Open for Application
               </SelectItem>
