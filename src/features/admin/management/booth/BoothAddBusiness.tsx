@@ -53,7 +53,8 @@ const BoothAddBusiness = ({
             </DialogDescription>
           </DialogHeader>
           <ul>
-            {businessList?.filter(
+            {businessList
+              ?.filter(
                 (business) => !assignedBusinessIds.includes(business._id),
               )
               .map((business) => (
